@@ -1,9 +1,11 @@
 package de.thepiwo.lifelogging.restapi.http
 
-import akka.http.scaladsl.server.Directive1
+import akka.http.scaladsl.model.StatusCodes._
+import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.directives.{BasicDirectives, FutureDirectives, HeaderDirectives, RouteDirectives}
 import de.thepiwo.lifelogging.restapi.models.UserEntity
 import de.thepiwo.lifelogging.restapi.services.AuthService
+import de.thepiwo.lifelogging.restapi.utils.UnauthorizedException
 
 trait SecurityDirectives {
 
@@ -19,6 +21,12 @@ trait SecurityDirectives {
         case None => reject
       }
     }
+  }
+
+  def handleFailure(e: Throwable): Route = e match {
+    case e: UnauthorizedException => complete((Unauthorized, e.getMessage))
+    case _ => e.printStackTrace()
+      complete((ServiceUnavailable, e.getMessage))
   }
 
   protected val authService: AuthService
