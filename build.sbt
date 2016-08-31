@@ -12,7 +12,6 @@ libraryDependencies ++= {
     "de.heikoseeberger" %% "akka-http-circe" % "1.9.0",
 
     "com.github.t3hnar" %% "scala-bcrypt" % "2.6",
-    "org.apache.commons" % "commons-lang3" % "3.4",
     "com.typesafe.slick" %% "slick" % slickVersion,
     "org.postgresql" % "postgresql" % "9.4-1206-jdbc41",
     "org.flywaydb" % "flyway-core" % "3.2.1",
