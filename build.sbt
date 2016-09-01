@@ -1,4 +1,7 @@
 import sbt.Keys._
+import sbt.Resolver
+
+resolvers += Resolver.sonatypeRepo("releases")
 
 libraryDependencies ++= {
   val akkaVersion = "2.4.9"
@@ -16,6 +19,7 @@ libraryDependencies ++= {
     "org.postgresql" % "postgresql" % "9.4-1206-jdbc41",
     "org.flywaydb" % "flyway-core" % "3.2.1",
 
+    "org.scalamacros" % "paradise_2.10.6" % "2.1.0",
     "com.zaxxer" % "HikariCP" % "2.4.7",
     "org.slf4j" % "slf4j-nop" % "1.7.21",
 
@@ -43,3 +47,4 @@ lazy val root = (project in file(".")).
 
 dockerExposedPorts := Seq(9000)
 dockerEntrypoint := Seq("bin/%s" format executableScriptName.value, "-Dconfig.resource=docker.conf")
+

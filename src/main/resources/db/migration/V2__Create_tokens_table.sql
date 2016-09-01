@@ -3,5 +3,6 @@ CREATE TABLE "tokens" (
   "user_id" BIGINT,
   "token"   VARCHAR NOT NULL
 );
+
 ALTER TABLE "tokens"
   ADD CONSTRAINT "USER_FK" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON UPDATE RESTRICT ON DELETE CASCADE;
