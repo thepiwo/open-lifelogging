@@ -8,6 +8,7 @@ import spray.json.{DefaultJsonProtocol, JsString, JsValue, NullOptions, RootJson
 
 
 trait AdditionalJsonProtocol extends DefaultJsonProtocol {
+
   implicit object TimestampJsonFormat extends RootJsonFormat[Timestamp] {
     override def write(timestamp: Timestamp): JsString = JsString(timestamp.toString)
 
@@ -16,6 +17,7 @@ trait AdditionalJsonProtocol extends DefaultJsonProtocol {
       case _ => new Timestamp(0L)
     }
   }
+
 }
 
 trait JsonProtocol extends SprayJsonSupport with AdditionalJsonProtocol with NullOptions {
@@ -26,7 +28,7 @@ trait JsonProtocol extends SprayJsonSupport with AdditionalJsonProtocol with Nul
 
   implicit val userEntityFormat = jsonFormat3(UserEntity)
 
-  implicit val logCoordEntityFormat = jsonFormat4(LogCoordEntity)
+  implicit val logCoordEntityFormat = jsonFormat6(LogCoordEntity)
 
   implicit val logEntityFormat = jsonFormat4(LogEntity)
 

@@ -63,7 +63,9 @@ class LoggingService(val databaseService: DatabaseService)
         None,
         logEntityInserted.id,
         logEntityInsert.logCoordEntity.get.latitude,
-        logEntityInsert.logCoordEntity.get.longitude
+        logEntityInsert.logCoordEntity.get.longitude,
+        logEntityInsert.logCoordEntity.get.altitude,
+        logEntityInsert.logCoordEntity.get.accuracy
       )
     )
 

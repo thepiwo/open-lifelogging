@@ -19,7 +19,9 @@ case class LogEntityInsert(logCoordEntity: Option[LogCoordEntity])
 case class LogCoordEntity(id: Option[Long] = None,
                           logEntityId: Option[Long],
                           latitude: Double,
-                          longitude: Double)
+                          longitude: Double,
+                          altitude: Double,
+                          accuracy: Float)
 
 
 

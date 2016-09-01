@@ -2,7 +2,9 @@ CREATE TABLE "log_coords" (
   "id"            BIGSERIAL PRIMARY KEY,
   "log_entity_id" BIGINT,
   "latitude"      DOUBLE PRECISION NOT NULL,
-  "longitude"     DOUBLE PRECISION NOT NULL
+  "longitude"     DOUBLE PRECISION NOT NULL,
+  "altitude"      DOUBLE PRECISION NOT NULL,
+  "accuracy"      FLOAT            NOT NULL
 );
 
 ALTER TABLE "log_coords"

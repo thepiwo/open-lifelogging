@@ -22,7 +22,11 @@ trait LogCoordEntityTable extends LogEntityTable {
 
     def longitude = column[Double]("longitude")
 
-    def * = (id, logEntityId, latitude, longitude) <> ((LogCoordEntity.apply _).tupled, LogCoordEntity.unapply)
+    def altitude = column[Double]("altitude")
+
+    def accuracy = column[Float]("accuracy")
+
+    def * = (id, logEntityId, latitude, longitude, altitude, accuracy) <> ((LogCoordEntity.apply _).tupled, LogCoordEntity.unapply)
 
   }
 
