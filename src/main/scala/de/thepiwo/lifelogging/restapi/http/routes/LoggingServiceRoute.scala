@@ -49,7 +49,7 @@ class LoggingServiceRoute(val authService: AuthService, loggingService: LoggingS
         path("keys") {
           pathEndOrSingleSlash {
             get {
-              onComplete(getLogKeys()) {
+              onComplete(getLogKeys(loggedUser)) {
                 case Success(keys) => complete(OK -> keys.toJson)
                 case Failure(e) => handleFailure(e)
               }

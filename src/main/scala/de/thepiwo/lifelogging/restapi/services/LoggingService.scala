@@ -12,10 +12,13 @@ class LoggingService(val databaseService: DatabaseService)
   import databaseService._
   import databaseService.driver.api._
 
-  def getLogs(loggedUser: UserEntity): Future[Seq[LogEntityReturn]] = ???
+  def getLogs(loggedUser: UserEntity): Future[Seq[LogEntityReturn]] =
+    getLogsResult(db.run(logs.filter(_.userId === loggedUser.id).result))
 
-  def getLogs(loggedUser: UserEntity, logKey: String): Future[Seq[LogEntityReturn]] = ???
-
+  def getLogs(loggedUser: UserEntity, logKey: String): Future[Seq[LogEntityReturn]] =
+    getLogsResult(db.run(logs
+      .filter(_.userId === loggedUser.id)
+      .filter(_.key === logKey).result))
 
   def createLogItem(loggedUser: UserEntity, logKey: String, logEntityInsert: LogEntityInsert): Future[LogEntityReturn] = {
     val logEntity = LogEntity(None, loggedUser.id, logKey, Helper.now())
@@ -33,8 +36,25 @@ class LoggingService(val databaseService: DatabaseService)
     )
   }
 
-  def getLogKeys(): Future[Seq[String]] = ???
+  def getLogKeys(loggedUser: UserEntity): Future[Seq[String]] =
+    db.run(logs.filter(_.userId === loggedUser.id).map(_.key).result)
 
+  private def getLogsResult(filterLogEntites: Future[Seq[LogEntity]]): Future[Seq[LogEntityReturn]] =
+    for {
+      logEntities <- filterLogEntites
+      logCoords <- getLogCoords(logEntities.flatMap(_.id))
+    } yield logEntities.map { logEntity =>
+      LogEntityReturn(
+        logEntity.id,
+        logEntity.userId,
+        logEntity.key,
+        logCoords.find(_.logEntityId == logEntity.id),
+        logEntity.createdAt
+      )
+    }
+
+  private def getLogCoords(logEntityIds: Seq[Long]): Future[Seq[LogCoordEntity]] =
+    db.run(logCoords.filter(_.logEntityId inSet logEntityIds).result)
 
   private def createLogCoordsEntity(logEntityInsert: LogEntityInsert,
                                     logEntityInserted: LogEntity): Future[LogCoordEntity] =
