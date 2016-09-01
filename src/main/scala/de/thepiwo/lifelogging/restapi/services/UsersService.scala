@@ -24,18 +24,18 @@ class UsersService(val databaseService: DatabaseService)
   def createUser(user: UserEntity): Future[UserEntity] =
     db.run(users returning users += user)
 
-  def updateUser(id: Long, userUpdate: UserEntityUpdate): Future[Option[PublicUserEntity]] =
-    getInternalUserById(id).flatMap {
+  def updateUser(loggedUser: UserEntity, userUpdate: UserEntityUpdate): Future[Option[PublicUserEntity]] =
+    getInternalUserById(loggedUser.id).flatMap {
       case Some(user) =>
         val updatedUser: UserEntity = userUpdate.merge(user)
-        db.run(users.filter(_.id === id).update(updatedUser)).map(_ => Some(updatedUser.public))
+        db.run(users.filter(_.id === loggedUser.id).update(updatedUser)).map(_ => Some(updatedUser.public))
       case None => Future.successful(None)
     }
 
-  def deleteUser(id: Long): Future[Int] =
-    db.run(users.filter(_.id === id).delete)
+  def deleteUser(loggedUser: UserEntity): Future[Int] =
+    db.run(users.filter(_.id === loggedUser.id).delete)
 
-  private def getInternalUserById(id: Long): Future[Option[UserEntity]] =
+  private def getInternalUserById(id: Option[Long]): Future[Option[UserEntity]] =
     db.run(users.filter(_.id === id).result.headOption)
 
 }

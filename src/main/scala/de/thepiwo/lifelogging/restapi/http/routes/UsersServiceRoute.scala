@@ -34,10 +34,16 @@ class UsersServiceRoute(val authService: AuthService, usersService: UsersService
             } ~
               post {
                 entity(as[UserEntityUpdate]) { userUpdate =>
-                  onComplete(updateUser(loggedUser.id.get, userUpdate)) {
+                  onComplete(updateUser(loggedUser, userUpdate)) {
                     case Success(user) => complete(OK -> user.toJson)
                     case Failure(e) => handleFailure(e)
                   }
+                }
+              } ~
+              delete {
+                onComplete(deleteUser(loggedUser)) {
+                  case Success(user) => complete(OK -> "deleted")
+                  case Failure(e) => handleFailure(e)
                 }
               }
           }
@@ -50,21 +56,7 @@ class UsersServiceRoute(val authService: AuthService, usersService: UsersService
               case Success(user) => complete(OK -> user.toJson)
               case Failure(e) => handleFailure(e)
             }
-          } ~
-            post {
-              entity(as[UserEntityUpdate]) { userUpdate =>
-                onComplete(updateUser(id, userUpdate)) {
-                  case Success(user) => complete(OK -> user.toJson)
-                  case Failure(e) => handleFailure(e)
-                }
-              }
-            } ~
-            delete {
-              onComplete(deleteUser(id)) {
-                case Success(user) => complete(NoContent -> "deleted")
-                case Failure(e) => handleFailure(e)
-              }
-            }
+          }
         }
       }
   }
