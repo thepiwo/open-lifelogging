@@ -18,7 +18,7 @@ trait SecurityDirectives {
     headerValueByName("Token").flatMap { token =>
       onSuccess(authService.authenticate(token)).flatMap {
         case Some(user) => provide(user)
-        case None => reject
+        case None => complete((Unauthorized, "token not valid"))
       }
     }
   }

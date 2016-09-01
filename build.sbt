@@ -12,7 +12,6 @@ libraryDependencies ++= {
     "com.typesafe.akka" %% "akka-http-core" % akkaVersion,
     "com.typesafe.akka" %% "akka-http-experimental" % akkaVersion,
     "com.typesafe.akka" %% "akka-http-testkit" % akkaVersion,
-    "de.heikoseeberger" %% "akka-http-circe" % "1.9.0",
 
     "com.github.t3hnar" %% "scala-bcrypt" % "2.6",
     "com.typesafe.slick" %% "slick" % slickVersion,
@@ -23,9 +22,7 @@ libraryDependencies ++= {
     "com.zaxxer" % "HikariCP" % "2.4.7",
     "org.slf4j" % "slf4j-nop" % "1.7.21",
 
-    "io.circe" %% "circe-core" % circeVersion,
-    "io.circe" %% "circe-generic" % circeVersion,
-    "io.circe" %% "circe-parser" % circeVersion,
+    "com.typesafe.akka" %% "akka-http-spray-json-experimental" % "2.4.9",
 
     "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
     "com.typesafe.akka" %% "akka-http-testkit" % akkaVersion % "test",

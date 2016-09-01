@@ -2,11 +2,10 @@ package de.thepiwo.lifelogging
 
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.github.t3hnar.bcrypt._
-import de.heikoseeberger.akkahttpcirce.CirceSupport
 import de.thepiwo.lifelogging.restapi.http.HttpService
 import de.thepiwo.lifelogging.restapi.models.UserEntity
-import de.thepiwo.lifelogging.restapi.services.{AuthService, UsersService}
-import de.thepiwo.lifelogging.restapi.utils.DatabaseService
+import de.thepiwo.lifelogging.restapi.services.{AuthService, LoggingService, UsersService}
+import de.thepiwo.lifelogging.restapi.utils.{DatabaseService, JsonProtocol}
 import de.thepiwo.lifelogging.utils.TestPostgresDatabase._
 import de.thepiwo.lifelogging.utils.TestUserEntity
 import org.scalatest._
@@ -15,13 +14,14 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.util.Random
 
-trait BaseServiceTest extends WordSpec with Matchers with ScalatestRouteTest with CirceSupport {
+trait BaseServiceTest extends WordSpec with Matchers with ScalatestRouteTest with JsonProtocol {
 
   private val databaseService = new DatabaseService(jdbcUrl, dbUser, dbPassword)
 
   val usersService = new UsersService(databaseService)
+  val loggingService = new LoggingService(databaseService)
   val authService = new AuthService(databaseService)(usersService)
-  val httpService = new HttpService(usersService, authService)
+  val httpService = new HttpService(usersService, authService, loggingService)
 
   def provisionUsersList(size: Int): Seq[TestUserEntity] = {
     val savedUsers = (1 to size).map { _ =>

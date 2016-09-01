@@ -4,10 +4,8 @@ import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.model.{HttpEntity, MediaTypes}
 import akka.http.scaladsl.server.Route
 import de.thepiwo.lifelogging.restapi.models.{PublicUserEntity, UserEntityUpdate}
-import io.circe.generic.auto._
-import io.circe.syntax._
 import org.scalatest.concurrent.ScalaFutures
-
+import spray.json._
 
 import scala.util.Random
 
@@ -40,7 +38,7 @@ class UsersServiceTest extends BaseServiceTest with ScalaFutures {
       val testUser = testUsers(3).user
       val newUsername = Random.nextString(10)
       val requestEntity = HttpEntity(MediaTypes.`application/json`,
-        UserEntityUpdate(Some(newUsername), None).asJson.noSpaces)
+        UserEntityUpdate(Some(newUsername), None).toJson.compactPrint)
 
       Post(s"/users/${testUser.id.get}", requestEntity) ~> route ~> check {
         responseAs[PublicUserEntity] should be(testUser.copy(username = newUsername).public)
@@ -73,7 +71,7 @@ class UsersServiceTest extends BaseServiceTest with ScalaFutures {
       val testUser = testUsers.head.user
       val newUsername = Random.nextString(10)
       val requestEntity = HttpEntity(MediaTypes.`application/json`,
-        UserEntityUpdate(Some(newUsername), None).asJson.noSpaces)
+        UserEntityUpdate(Some(newUsername), None).toJson.compactPrint)
       val header = "Token" -> testTokens.find(_.userId.contains(testUser.id.get)).get.token
 
       Post("/users/me", requestEntity) ~> addHeader(header._1, header._2) ~> route ~> check {
