@@ -18,8 +18,8 @@ case class LogEntityInsert(logCoordEntity: Option[LogCoordEntity])
 
 case class LogCoordEntity(id: Option[Long] = None,
                           logEntityId: Option[Long],
-                          latitude: String,
-                          longitude: String)
+                          latitude: Double,
+                          longitude: Double)
 
 
 

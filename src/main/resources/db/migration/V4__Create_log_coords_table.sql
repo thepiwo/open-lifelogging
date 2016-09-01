@@ -1,8 +1,8 @@
 CREATE TABLE "log_coords" (
   "id"            BIGSERIAL PRIMARY KEY,
   "log_entity_id" BIGINT,
-  "latitude"      VARCHAR NOT NULL,
-  "longitude"     VARCHAR NOT NULL
+  "latitude"      DOUBLE PRECISION NOT NULL,
+  "longitude"     DOUBLE PRECISION NOT NULL
 );
 
 ALTER TABLE "log_coords"

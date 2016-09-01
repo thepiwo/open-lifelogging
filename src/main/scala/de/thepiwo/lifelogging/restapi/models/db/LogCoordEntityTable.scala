@@ -18,9 +18,9 @@ trait LogCoordEntityTable extends LogEntityTable {
       onUpdate = ForeignKeyAction.Restrict,
       onDelete = ForeignKeyAction.Cascade)
 
-    def latitude = column[String]("latitude")
+    def latitude = column[Double]("latitude")
 
-    def longitude = column[String]("longitude")
+    def longitude = column[Double]("longitude")
 
     def * = (id, logEntityId, latitude, longitude) <> ((LogCoordEntity.apply _).tupled, LogCoordEntity.unapply)
 
