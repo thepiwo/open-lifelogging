@@ -34,24 +34,12 @@ class UsersServiceTest extends BaseServiceTest with ScalaFutures {
       }
     }
 
-    "update user by id and retrieve it" in new Context {
-      val testUser = testUsers(3).user
-      val newUsername = Random.nextString(10)
-      val requestEntity = HttpEntity(MediaTypes.`application/json`,
-        UserEntityUpdate(Some(newUsername), None).toJson.compactPrint)
-
-      Post(s"/users/${testUser.id.get}", requestEntity) ~> route ~> check {
-        responseAs[PublicUserEntity] should be(testUser.copy(username = newUsername).public)
-        whenReady(getUserById(testUser.id.get)) { result =>
-          result.get.username should be(newUsername)
-        }
-      }
-    }
-
-    "delete user" in new Context {
+    "delete currently logged user" in new Context {
       val testUser = testUsers(2).user
-      Delete(s"/users/${testUser.id.get}") ~> route ~> check {
-        response.status should be(NoContent)
+      val header = "Token" -> testTokens.find(_.userId.contains(testUser.id.get)).get.token
+
+      Delete(s"/users/me") ~> addHeader(header._1, header._2) ~> route ~> check {
+        response.status should be(OK)
         whenReady(getUserById(testUser.id.get)) { result =>
           result should be(None: Option[PublicUserEntity])
         }
