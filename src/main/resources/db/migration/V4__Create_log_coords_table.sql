@@ -1,4 +1,4 @@
-CREATE TABLE "log_coords" (
+CREATE TABLE "log_coord" (
   "id"            BIGSERIAL PRIMARY KEY,
   "log_entity_id" BIGINT,
   "latitude"      DOUBLE PRECISION NOT NULL,
@@ -7,5 +7,5 @@ CREATE TABLE "log_coords" (
   "accuracy"      FLOAT            NOT NULL
 );
 
-ALTER TABLE "log_coords"
+ALTER TABLE "log_coord"
   ADD CONSTRAINT "LOG_ENTITY_FK" FOREIGN KEY ("log_entity_id") REFERENCES "logs" ("id") ON UPDATE RESTRICT ON DELETE CASCADE;

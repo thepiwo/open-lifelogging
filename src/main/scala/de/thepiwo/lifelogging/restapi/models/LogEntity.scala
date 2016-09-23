@@ -11,17 +11,11 @@ case class LogEntity(id: Option[Long] = None,
 case class LogEntityReturn(id: Option[Long],
                            userId: Option[Long],
                            key: String,
-                           logCoordEntity: Option[LogCoordEntity],
+                           logEntity: LogEntityInsert,
                            createdAt: Timestamp)
 
-case class LogEntityInsert(logCoordEntity: Option[LogCoordEntity])
+case class LogEntityInsert(logEntities: LogEntities)
 
-case class LogCoordEntity(id: Option[Long] = None,
-                          logEntityId: Option[Long],
-                          latitude: Double,
-                          longitude: Double,
-                          altitude: Double,
-                          accuracy: Float)
 
 
 

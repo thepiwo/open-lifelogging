@@ -1,15 +1,15 @@
 package de.thepiwo.lifelogging.restapi.models.db
 
-import de.thepiwo.lifelogging.restapi.models.LogCoordEntity
+import de.thepiwo.lifelogging.restapi.models.CoordEntity
 import de.thepiwo.lifelogging.restapi.utils.DatabaseService
 
-trait LogCoordEntityTable extends LogEntityTable {
+trait CoordEntityTable extends LogEntityTable {
 
   protected val databaseService: DatabaseService
 
   import databaseService.driver.api._
 
-  class LogCoords(tag: Tag) extends Table[LogCoordEntity](tag, "log_coords") {
+  class Coord(tag: Tag) extends Table[CoordEntity](tag, "log_coord") {
     def id = column[Option[Long]]("id", O.PrimaryKey, O.AutoInc)
 
     def logEntityId = column[Option[Long]]("log_entity_id")
@@ -26,10 +26,10 @@ trait LogCoordEntityTable extends LogEntityTable {
 
     def accuracy = column[Float]("accuracy")
 
-    def * = (id, logEntityId, latitude, longitude, altitude, accuracy) <> ((LogCoordEntity.apply _).tupled, LogCoordEntity.unapply)
+    def * = (id, logEntityId, latitude, longitude, altitude, accuracy) <> ((CoordEntity.apply _).tupled, CoordEntity.unapply)
 
   }
 
-  protected val logCoords = TableQuery[LogCoords]
+  protected val logCoord = TableQuery[Coord]
 
 }
