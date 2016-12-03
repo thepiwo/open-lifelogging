@@ -1,21 +1,17 @@
 package de.thepiwo.lifelogging.restapi.models
 
 import java.sql.Timestamp
+import spray.json.JsValue
 
 
-case class LogEntity(id: Option[Long] = None,
+case class LogEntity(id: Option[Long],
                      userId: Option[Long],
                      key: String,
+                     data: JsValue,
                      createdAt: Timestamp)
 
-case class LogEntityReturn(id: Option[Long],
-                           userId: Option[Long],
-                           key: String,
-                           logEntity: LogEntityInsert,
-                           createdAt: Timestamp)
-
-case class LogEntityInsert(logEntities: LogEntities)
-
+case class LogEntityInsert(key: String,
+                           data: JsValue)
 
 
 

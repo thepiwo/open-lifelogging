@@ -4,6 +4,7 @@ import java.sql.Timestamp
 
 import de.thepiwo.lifelogging.restapi.models.LogEntity
 import de.thepiwo.lifelogging.restapi.utils.DatabaseService
+import spray.json.JsValue
 
 trait LogEntityTable extends UserEntityTable {
 
@@ -22,9 +23,11 @@ trait LogEntityTable extends UserEntityTable {
 
     def key = column[String]("key")
 
+    def data = column[JsValue]("data")
+
     def createdAt = column[Timestamp]("created_at")
 
-    def * = (id, userId, key, createdAt) <> ((LogEntity.apply _).tupled, LogEntity.unapply)
+    def * = (id, userId, key, data, createdAt) <> ((LogEntity.apply _).tupled, LogEntity.unapply)
 
   }
 

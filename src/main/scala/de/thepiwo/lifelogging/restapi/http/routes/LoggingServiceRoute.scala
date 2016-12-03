@@ -2,8 +2,9 @@ package de.thepiwo.lifelogging.restapi.http.routes
 
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
 import de.thepiwo.lifelogging.restapi.http.SecurityDirectives
-import de.thepiwo.lifelogging.restapi.models.LogEntityInsert
+import de.thepiwo.lifelogging.restapi.models.{LogEntity, LogEntityInsert}
 import de.thepiwo.lifelogging.restapi.services.{AuthService, LoggingService}
 import de.thepiwo.lifelogging.restapi.utils.JsonProtocol
 import spray.json._
@@ -17,15 +18,15 @@ class LoggingServiceRoute(val authService: AuthService, loggingService: LoggingS
 
   import loggingService._
 
-  val route = pathPrefix("logs") {
+  val route: Route = pathPrefix("logs") {
     authenticate { loggedUser =>
-        pathEndOrSingleSlash {
-          get {
-            onComplete(getLogs(loggedUser)) {
-              case Success(logs) => complete(OK -> logs.toJson)
-              case Failure(e) => handleFailure(e)
-            }
+      pathEndOrSingleSlash {
+        get {
+          onComplete(getLogs(loggedUser)) {
+            case Success(logs) => complete(OK -> logs.toJson)
+            case Failure(e) => handleFailure(e)
           }
+        }
       } ~
         path("key" / Remaining) { logKey =>
           pathEndOrSingleSlash {
@@ -38,7 +39,7 @@ class LoggingServiceRoute(val authService: AuthService, loggingService: LoggingS
             } ~
               post {
                 entity(as[LogEntityInsert]) { logEntityInsert =>
-                  onComplete(createLogItem(loggedUser, logKey, logEntityInsert)) {
+                  onComplete(createLogItem(loggedUser, logEntityInsert)) {
                     case Success(log) => complete(Created -> log.toJson)
                     case Failure(e) => handleFailure(e)
                   }

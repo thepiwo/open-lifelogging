@@ -2,6 +2,7 @@ CREATE TABLE "logs" (
   "id"         BIGSERIAL PRIMARY KEY,
   "user_id"    BIGINT,
   "key"        VARCHAR   NOT NULL,
+  "data"       JSONB     NOT NULL,
   "created_at" TIMESTAMP NOT NULL
 );
 
