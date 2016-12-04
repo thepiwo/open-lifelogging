@@ -42,7 +42,7 @@ class UsersServiceRoute(val authService: AuthService, usersService: UsersService
               } ~
               delete {
                 onComplete(deleteUser(loggedUser)) {
-                  case Success(user) => complete(OK -> "deleted")
+                  case Success(_) => complete(OK -> "deleted")
                   case Failure(e) => handleFailure(e)
                 }
               }

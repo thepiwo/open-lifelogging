@@ -1,5 +1,6 @@
 package de.thepiwo.lifelogging.restapi
 
+
 import akka.actor.ActorSystem
 import akka.event.{Logging, LoggingAdapter}
 import akka.http.scaladsl.Http
@@ -11,7 +12,7 @@ import de.thepiwo.lifelogging.restapi.utils.{Config, DatabaseService, FlywayServ
 import scala.concurrent.ExecutionContext
 
 object Main extends App with Config {
-  implicit val actorSystem = ActorSystem()
+  implicit val actorSystem = ActorSystem("MainSystem")
   implicit val executor: ExecutionContext = actorSystem.dispatcher
   implicit val log: LoggingAdapter = Logging(actorSystem, getClass)
   implicit val materializer: ActorMaterializer = ActorMaterializer()
@@ -27,5 +28,11 @@ object Main extends App with Config {
 
   val httpService = new HttpService(usersService, authService, loggingService)
 
+  val schedulerActions = new SchedulerActions(usersService, loggingService)
+
   Http().bindAndHandle(httpService.routes, httpHost, httpPort)
 }
+
+
+
+

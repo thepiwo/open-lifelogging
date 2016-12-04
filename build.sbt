@@ -7,8 +7,11 @@ libraryDependencies ++= {
   val akkaVersion = "2.4.9"
   val scalaTestVersion = "3.0.0"
   val slickVersion = "3.1.1"
-  val circeVersion = "0.4.1"
   val slickPGVersion = "0.14.3"
+  val sprayVersion = "1.3.2"
+  val logBackVersion = "1.1.7"
+  val scalaLoggingVersion = "3.5.0"
+
 
   Seq(
     "com.typesafe.akka" %% "akka-http-core" % akkaVersion,
@@ -22,7 +25,12 @@ libraryDependencies ++= {
 
     "org.scalamacros" % "paradise_2.10.6" % "2.1.0",
     "com.zaxxer" % "HikariCP" % "2.4.7",
-    "org.slf4j" % "slf4j-nop" % "1.7.21",
+
+    "ch.qos.logback" % "logback-classic" % logBackVersion,
+    "com.typesafe.scala-logging" %% "scala-logging" % scalaLoggingVersion,
+
+    "io.spray" %% "spray-json" % sprayVersion,
+    "io.spray" %% "spray-client" % sprayVersion,
 
     "com.github.tminglei" %% "slick-pg" % slickPGVersion,
     "com.github.tminglei" %% "slick-pg_spray-json" % slickPGVersion,

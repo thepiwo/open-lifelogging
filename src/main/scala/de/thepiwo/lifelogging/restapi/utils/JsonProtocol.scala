@@ -22,18 +22,13 @@ trait AdditionalJsonProtocol extends DefaultJsonProtocol {
 
 trait JsonProtocol extends SprayJsonSupport with AdditionalJsonProtocol with NullOptions {
 
-  implicit val tokenEntityFormat = jsonFormat3(TokenEntity)
-
-  implicit val loginPasswordFormat = jsonFormat2(LoginPassword)
-
-  implicit val userEntityFormat = jsonFormat3(UserEntity)
-
-  implicit val logEntityFormat = jsonFormat5(LogEntity)
-
-  implicit val logEntityFormatInsert = jsonFormat2(LogEntityInsert)
-
-  implicit val publicUserEntityFormat = jsonFormat2(PublicUserEntity)
-
-  implicit val userEntityUpdateFormat = jsonFormat2(UserEntityUpdate)
+  implicit val tokenEntityFormat: RootJsonFormat[TokenEntity] = jsonFormat3(TokenEntity)
+  implicit val loginPasswordFormat: RootJsonFormat[LoginPassword] = jsonFormat2(LoginPassword)
+  implicit val userEntityFormat: RootJsonFormat[UserEntity] = jsonFormat3(UserEntity)
+  implicit val logEntityFormat: RootJsonFormat[LogEntity] = jsonFormat5(LogEntity)
+  implicit val logEntityFormatInsert: RootJsonFormat[LogEntityInsert] = jsonFormat2(LogEntityInsert)
+  implicit val publicUserEntityFormat: RootJsonFormat[PublicUserEntity] = jsonFormat2(PublicUserEntity)
+  implicit val userEntityUpdateFormat: RootJsonFormat[UserEntityUpdate] = jsonFormat2(UserEntityUpdate)
 
 }
+

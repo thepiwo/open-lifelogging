@@ -1,13 +1,13 @@
 package de.thepiwo.lifelogging.restapi.services
 
-import de.thepiwo.lifelogging.restapi.models.db.UserEntityTable
-import de.thepiwo.lifelogging.restapi.models.{PublicUserEntity, UserEntity, UserEntityUpdate}
+import de.thepiwo.lifelogging.restapi.models.db.{UserSettingsEntityTable, UserEntityTable}
+import de.thepiwo.lifelogging.restapi.models.{PublicUserEntity, UserEntity, UserSettingsEntity, UserEntityUpdate}
 import de.thepiwo.lifelogging.restapi.utils.DatabaseService
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class UsersService(val databaseService: DatabaseService)
-                  (implicit executionContext: ExecutionContext) extends UserEntityTable {
+                  (implicit executionContext: ExecutionContext) extends UserEntityTable with UserSettingsEntityTable {
 
   import databaseService._
   import databaseService.driver.api._
@@ -38,4 +38,9 @@ class UsersService(val databaseService: DatabaseService)
   private def getInternalUserById(id: Option[Long]): Future[Option[UserEntity]] =
     db.run(users.filter(_.id === id).result.headOption)
 
+  def getLastFmUsers: Future[Seq[(String, UserEntity)]] =
+    db.run((for {
+      us <- userSettings.filter(_.lastFmUsername.isDefined)
+      u <- users.filter(_.id === us.userId)
+    } yield (us.lastFmUsername.get, u)).result)
 }
