@@ -14,12 +14,15 @@ class LoggingService(val databaseService: DatabaseService)
   import databaseService.driver.api._
 
   def getLogs(loggedUser: UserEntity): Future[Seq[LogEntity]] =
-    db.run(logs.filter(_.userId === loggedUser.id).result)
+    db.run(logs
+      .filter(_.userId === loggedUser.id)
+      .sortBy(_.createdAt desc).result)
 
   def getLogs(loggedUser: UserEntity, logKey: String): Future[Seq[LogEntity]] =
     db.run(logs
       .filter(_.userId === loggedUser.id)
-      .filter(_.key === logKey).result)
+      .filter(_.key === logKey)
+      .sortBy(_.createdAt desc).result)
 
   def createLogItem(loggedUser: UserEntity, logEntityInsert: LogEntityInsert): Future[LogEntity] = {
     val logEntity = LogEntity(None, loggedUser.id, logEntityInsert.key, logEntityInsert.data, Helper.now())
