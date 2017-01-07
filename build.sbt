@@ -45,8 +45,7 @@ libraryDependencies ++= {
 Revolver.settings
 
 lazy val root = (project in file(".")).
-  enablePlugins(JavaAppPackaging).
-  enablePlugins(DockerPlugin).
+  enablePlugins(AssemblyPlugin).
   settings(
     name := "open-lifelogging",
     organization := "de.thepiwo",
@@ -54,6 +53,4 @@ lazy val root = (project in file(".")).
     scalaVersion := "2.11.8"
   )
 
-dockerExposedPorts := Seq(9000)
-dockerEntrypoint := Seq("bin/%s" format executableScriptName.value, "-Dconfig.resource=docker.conf")
-
+test in assembly := {}
