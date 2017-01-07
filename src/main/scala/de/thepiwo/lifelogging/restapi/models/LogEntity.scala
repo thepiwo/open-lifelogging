@@ -8,6 +8,7 @@ case class LogEntity(id: Option[Long],
                      userId: Option[Long],
                      key: String,
                      data: JsValue,
+                     hash: String,
                      createdAt: Timestamp)
 
 case class LogEntityInsert(key: String,

@@ -25,7 +25,14 @@ class LoggingService(val databaseService: DatabaseService)
       .sortBy(_.createdAt desc).result)
 
   def createLogItem(loggedUser: UserEntity, logEntityInsert: LogEntityInsert): Future[LogEntity] = {
-    val logEntity = LogEntity(None, loggedUser.id, logEntityInsert.key, logEntityInsert.data, Helper.now())
+    val logEntity = LogEntity(None,
+      userId = loggedUser.id,
+      key = logEntityInsert.key,
+      data = logEntityInsert.data,
+      hash = Helper.getJsonHash(logEntityInsert.data),
+      createdAt = Helper.now()
+    )
+
     db.run(logs returning logs += logEntity)
   }
 

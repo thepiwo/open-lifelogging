@@ -1,6 +1,9 @@
 import sbt.Keys._
 import sbt.Resolver
 
+scalaVersion  := "2.11.8"
+scalacOptions ++= Seq("-Xlint:-missing-interpolator", "-Xfatal-warnings", "-deprecation", "-feature", "-language:implicitConversions", "-language:postfixOps", "-Xmax-classfile-name", "240")
+
 resolvers += Resolver.sonatypeRepo("releases")
 
 libraryDependencies ++= {
