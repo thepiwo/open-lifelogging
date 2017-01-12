@@ -27,9 +27,11 @@ trait LogEntityTable extends UserEntityTable {
 
     def hash = column[String]("hash")
 
+    def createdAtClient = column[Timestamp]("created_at_client")
+
     def createdAt = column[Timestamp]("created_at")
 
-    def * = (id, userId, key, data, hash, createdAt) <> ((LogEntity.apply _).tupled, LogEntity.unapply)
+    def * = (id, userId, key, data, hash, createdAtClient, createdAt) <> ((LogEntity.apply _).tupled, LogEntity.unapply)
 
   }
 

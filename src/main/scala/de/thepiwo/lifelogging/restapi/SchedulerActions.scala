@@ -61,7 +61,11 @@ class SchedulerActor(val usersService: UsersService, loggingService: LoggingServ
       LastFm.RecentTracks(username) onComplete {
         case Success(tracks) =>
           tracks.recenttracks.track.foreach { track =>
-            loggingService.createLogItem(user, LogEntityInsert("LastFMSong", track.toJson))
+            val playingDate = track.date match {
+              case Some(date) => date.uts.toLong
+              case None => System.currentTimeMillis()
+            }
+            loggingService.createLogItem(user, LogEntityInsert("LastFMSong", track.toJson, playingDate))
           }
         case Failure(e) => e.printStackTrace()
       }

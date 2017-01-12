@@ -9,10 +9,12 @@ case class LogEntity(id: Option[Long],
                      key: String,
                      data: JsValue,
                      hash: String,
+                     createdAtClient: Timestamp,
                      createdAt: Timestamp)
 
 case class LogEntityInsert(key: String,
-                           data: JsValue)
+                           data: JsValue,
+                           createdAtClient: Long)
 
 
 

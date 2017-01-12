@@ -30,6 +30,7 @@ class LoggingService(val databaseService: DatabaseService)
       key = logEntityInsert.key,
       data = logEntityInsert.data,
       hash = Helper.getJsonHash(logEntityInsert.data),
+      createdAtClient = Helper.timestamp(logEntityInsert.createdAtClient),
       createdAt = Helper.now()
     )
 
