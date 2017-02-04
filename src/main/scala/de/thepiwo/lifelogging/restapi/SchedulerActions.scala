@@ -47,7 +47,6 @@ class SchedulerActor(val usersService: UsersService, loggingService: LoggingServ
 
   def receive = {
     case UpdateLastFm =>
-      log.debug("Received UpdateLastFm")
       getLastFmUsers onComplete {
         case Success(users) =>
           users.foreach { user =>

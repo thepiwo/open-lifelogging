@@ -1,7 +1,10 @@
 package de.thepiwo.lifelogging.restapi.services
 
+import java.time.LocalDate
+
 import de.thepiwo.lifelogging.restapi.models._
 import de.thepiwo.lifelogging.restapi.models.db.LogEntityTable
+import de.thepiwo.lifelogging.restapi.utils.Helper.{timestampEndDay, timestampStartDay}
 import de.thepiwo.lifelogging.restapi.utils.{DatabaseService, Helper}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -13,16 +16,25 @@ class LoggingService(val databaseService: DatabaseService)
   import databaseService._
   import databaseService.driver.api._
 
-  def getLogs(loggedUser: UserEntity): Future[Seq[LogEntity]] =
-    db.run(logs
-      .filter(_.userId === loggedUser.id)
-      .sortBy(_.createdAt desc).result)
+  private def getLogsQuery(loggedUser: UserEntity, dateOption: Option[LocalDate]) =
+    dateOption match {
+      case None =>
+        logs
+          .filter(_.userId === loggedUser.id)
+          .sortBy(_.createdAt desc)
 
-  def getLogs(loggedUser: UserEntity, logKey: String): Future[Seq[LogEntity]] =
-    db.run(logs
-      .filter(_.userId === loggedUser.id)
-      .filter(_.key === logKey)
-      .sortBy(_.createdAt desc).result)
+      case Some(localDate) =>
+        logs
+          .filter(_.userId === loggedUser.id)
+          .filter(_.createdAtClient.between(timestampStartDay(localDate), timestampEndDay(localDate)))
+          .sortBy(_.createdAt desc)
+    }
+
+  def getLogs(loggedUser: UserEntity, dateOption: Option[LocalDate]): Future[Seq[LogEntity]] =
+    db.run(getLogsQuery(loggedUser, dateOption).result)
+
+  def getLogs(loggedUser: UserEntity, logKey: String, dateOption: Option[LocalDate]): Future[Seq[LogEntity]] =
+    db.run(getLogsQuery(loggedUser, dateOption).filter(_.key === logKey).result)
 
   def createLogItem(loggedUser: UserEntity, logEntityInsert: LogEntityInsert): Future[LogEntity] = {
     val logEntity = LogEntity(None,
@@ -36,7 +48,6 @@ class LoggingService(val databaseService: DatabaseService)
 
     db.run(logs returning logs += logEntity)
   }
-
 
   def getLogKeys(loggedUser: UserEntity): Future[Seq[String]] =
     db.run(logs.filter(_.userId === loggedUser.id).map(_.key).result)
