@@ -58,6 +58,17 @@ class LoggingServiceRoute(val authService: AuthService, loggingService: LoggingS
                 }
               }
             }
+          } ~
+          path("isCurrent") {
+            pathEndOrSingleSlash {
+              get {
+                onComplete(getLastLogOlderTwoHours(loggedUser)) {
+                  case Success(keys) if keys > 0 => complete(OK -> keys.toJson)
+                  case Success(keys) => complete(NotAcceptable -> keys.toJson)
+                  case Failure(e) => handleFailure(e)
+                }
+              }
+            }
           }
       }
     }
