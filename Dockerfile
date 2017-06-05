@@ -1,7 +1,7 @@
 FROM openjdk:8
 
-ENV SCALA_VERSION 2.11.8
-ENV SBT_VERSION 0.13.12
+ENV SCALA_VERSION 2.12.2
+ENV SBT_VERSION 0.13.15
 
 # FROM https://github.com/hseeberger/scala-sbt
 # Install Scala
@@ -25,4 +25,4 @@ COPY . /app
 RUN sbt assembly
 
 EXPOSE 9000
-CMD ["java", "-jar", "target/scala-2.11/open-lifelogging-assembly-0.0.1.jar"]
+CMD ["java", "-jar", "target/scala-2.12/open-lifelogging-assembly-0.0.2.jar"]

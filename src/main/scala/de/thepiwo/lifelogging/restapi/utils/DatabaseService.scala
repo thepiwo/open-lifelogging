@@ -2,14 +2,13 @@ package de.thepiwo.lifelogging.restapi.utils
 
 import com.github.tminglei.slickpg.PgSprayJsonSupport
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
+import slick.jdbc.PostgresProfile
 
 class DatabaseService(jdbcUrl: String, dbUser: String, dbPassword: String) {
 
-  import slick.driver.PostgresDriver
-
   case class JBean(name: String, count: Int)
 
-  trait JsonSupportedPostgresDriver extends PostgresDriver
+  trait JsonSupportedPostgresDriver extends PostgresProfile
     with PgSprayJsonSupport {
     override val pgjson = "jsonb"
 
@@ -29,7 +28,7 @@ class DatabaseService(jdbcUrl: String, dbUser: String, dbPassword: String) {
   import JsonSupportedPostgresDriver.api._
 
   val driver = JsonSupportedPostgresDriver
-  val db = Database.forDataSource(dataSource)
+  val db = Database.forDataSource(dataSource, None)
   db.createSession()
 
 }

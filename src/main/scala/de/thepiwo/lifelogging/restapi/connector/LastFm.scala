@@ -1,14 +1,15 @@
 package de.thepiwo.lifelogging.restapi.connector
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.Uri.Query
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.unmarshalling.{Unmarshal, Unmarshaller}
+import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import com.typesafe.config.{Config, ConfigFactory}
-import spray.client.pipelining._
-import spray.http.{MediaTypes, Uri}
-import spray.httpx.SprayJsonSupport._
-import spray.json.{DefaultJsonProtocol, NullOptions, RootJsonFormat}
-import de.thepiwo.lifelogging.restapi.connector.HttpConnection._
+import spray.json._
 
+import scala.collection.immutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -55,20 +56,30 @@ object LastFm {
   private val URL: String = config.getString("connector.lastfm.url")
 
   private implicit val system = ActorSystem()
+  private implicit val materializer: ActorMaterializer = ActorMaterializer(ActorMaterializerSettings(system))
 
   import LastFmJsonProtocol._
 
-  private val lastFmPipeline = (
-    logReq
-      ~> sendReceive
-      ~> logResp
-      ~> setContentType(MediaTypes.`application/json`)
+  def requestLastFm[T: JsonFormat](method: HttpMethod, uri: Uri, headers: immutable.Seq[HttpHeader]): Future[T] = {
+    val request = HttpRequest(
+      method = method,
+      uri = uri,
+      headers = headers
     )
+
+    implicit val unmarshaller = Unmarshaller
+      .stringUnmarshaller
+      .forContentTypes(MediaTypes.`application/json`)
+      .map(_.parseJson.convertTo[T])
+
+    Http(system)
+      .singleRequest(request)
+      .flatMap(response => Unmarshal(response.entity).to[T])
+  }
 
   //TODO pagination, duplicate filter
   def RecentTracks(username: String): Future[LastFmRecentTrackBase] = {
-    val pipeline = lastFmPipeline ~> unmarshal[LastFmRecentTrackBase]
-    val uri = Uri(URL).withQuery("user" -> username, "api_key" -> API_KEY, "format" -> "json", "method" -> "user.getrecenttracks")
-    pipeline(Get(uri))
+    val uri = Uri(URL).withQuery(Query("user" -> username, "api_key" -> API_KEY, "format" -> "json", "method" -> "user.getrecenttracks"))
+    requestLastFm[LastFmRecentTrackBase](HttpMethods.GET, uri, immutable.Seq.empty)
   }
 }
