@@ -29,6 +29,7 @@ class LoggingServiceRoute(val authService: AuthService, loggingService: LoggingS
         allLogsRoute ~
           logsByKeyRoute ~
           getLogKeysRoute ~
+          logByIdRoute ~
           areLogsCurrentRoute
       }
     }
@@ -70,6 +71,18 @@ class LoggingServiceRoute(val authService: AuthService, loggingService: LoggingS
         get {
           onComplete(getLogKeys(loggedUser)) {
             case Success(keys) => complete(OK -> keys.toJson)
+            case Failure(e) => handleFailure(e)
+          }
+        }
+      }
+    }
+
+  def logByIdRoute(implicit loggedUser: UserEntity): Route =
+    pathPrefix(IntNumber) { id =>
+      pathEndOrSingleSlash {
+        delete {
+          onComplete(deleteLogById(loggedUser, id)) {
+            case Success(_) => complete(NoContent)
             case Failure(e) => handleFailure(e)
           }
         }

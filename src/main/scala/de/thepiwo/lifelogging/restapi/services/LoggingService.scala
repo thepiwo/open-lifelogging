@@ -34,6 +34,11 @@ class LoggingService(val databaseService: DatabaseService)
   def getLogs(loggedUser: UserEntity, dateOption: Option[LocalDate]): Future[Seq[LogEntity]] =
     db.run(getLogsQuery(loggedUser, dateOption).result)
 
+  def deleteLogById(loggedUser: UserEntity, logId: Long): Future[Int] =
+    db.run(logs.filter(_.userId === loggedUser.id)
+      .filter(_.id === logId)
+      .delete)
+
   def getLastLogOlderTwoHours(loggedUser: UserEntity): Future[Int] =
     db.run(logs.filter(_.userId === loggedUser.id)
       .filter(_.createdAtClient > Timestamp.valueOf(LocalDateTime.now().minusHours(2)))
