@@ -2,6 +2,7 @@ package de.thepiwo.lifelogging.restapi.http.routes
 
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
 import de.thepiwo.lifelogging.restapi.http.SecurityDirectives
 import de.thepiwo.lifelogging.restapi.models.UserEntity
 import de.thepiwo.lifelogging.restapi.services.AuthService
@@ -16,7 +17,12 @@ class AuthServiceRoute(val authService: AuthService)
 
   import authService._
 
-  val route = pathPrefix("auth") {
+  val route: Route = pathPrefix("auth") {
+    signInRoute ~
+      signUpRoute
+  }
+
+  def signInRoute: Route =
     path("signIn") {
       pathEndOrSingleSlash {
         post {
@@ -28,18 +34,19 @@ class AuthServiceRoute(val authService: AuthService)
           }
         }
       }
-    } ~
-      path("signUp") {
-        pathEndOrSingleSlash {
-          post {
-            entity(as[UserEntity]) { userEntity =>
-              onComplete(signUp(userEntity)) {
-                case Success(token) => complete(Created -> token.toJson)
-                case Failure(e) => handleFailure(e)
-              }
+    }
+
+  def signUpRoute: Route =
+    path("signUp") {
+      pathEndOrSingleSlash {
+        post {
+          entity(as[UserEntity]) { userEntity =>
+            onComplete(signUp(userEntity)) {
+              case Success(token) => complete(Created -> token.toJson)
+              case Failure(e) => handleFailure(e)
             }
           }
         }
       }
-  }
+    }
 }

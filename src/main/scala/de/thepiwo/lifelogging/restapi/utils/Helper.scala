@@ -7,6 +7,8 @@ import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
 
 import spray.json.JsValue
 
+import scala.util.Try
+
 object Helper {
 
   def now(): Timestamp = Timestamp.valueOf(LocalDateTime.now())
@@ -26,9 +28,9 @@ object Helper {
     hash.map("%02x".format(_)).mkString
   }
 
-  def localDate(dateString: String): LocalDate = {
+  def localDate(dateString: String): Option[LocalDate] = {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    LocalDate.parse(dateString, formatter)
+    Try(LocalDate.parse(dateString, formatter)).toOption
   }
 
 }

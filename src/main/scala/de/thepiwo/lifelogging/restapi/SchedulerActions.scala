@@ -49,8 +49,8 @@ class SchedulerActor(val usersService: UsersService, loggingService: LoggingServ
     case UpdateLastFm =>
       getLastFmUsers onComplete {
         case Success(users) =>
-          users.foreach { user =>
-            self ! UpdateLastFmFor(user._1, user._2)
+          users.foreach { case (username, user) =>
+            self ! UpdateLastFmFor(username, user)
           }
         case Failure(e) => e.printStackTrace()
       }
