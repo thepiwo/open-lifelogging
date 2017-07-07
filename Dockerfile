@@ -24,5 +24,5 @@ COPY . /app
 
 RUN sbt assembly
 
-EXPOSE 9000
+EXPOSE 9001
 CMD ["java", "-jar", "target/scala-2.12/open-lifelogging-assembly-0.0.2.jar"]
