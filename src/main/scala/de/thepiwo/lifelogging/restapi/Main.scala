@@ -31,6 +31,7 @@ object Main extends App with Config {
   val schedulerActions = new SchedulerActions(usersService, loggingService)
 
   Http().bindAndHandle(httpService.routes, httpHost, httpPort)
+  log.info(s"Listening on $httpHost:$httpPort")
 }
 
 
