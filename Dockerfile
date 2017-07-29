@@ -1,6 +1,6 @@
 FROM openjdk:8
 
-ENV SCALA_VERSION 2.12.2
+ENV SCALA_VERSION 2.12.3
 ENV SBT_VERSION 0.13.15
 
 # FROM https://github.com/hseeberger/scala-sbt
