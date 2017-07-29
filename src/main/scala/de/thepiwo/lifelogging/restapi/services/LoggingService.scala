@@ -1,8 +1,9 @@
 package de.thepiwo.lifelogging.restapi.services
 
 import java.sql.Timestamp
-import java.time.{LocalDate, LocalDateTime}
+import java.time.LocalDateTime
 
+import de.thepiwo.lifelogging.restapi.http.routes.DateOptions
 import de.thepiwo.lifelogging.restapi.models._
 import de.thepiwo.lifelogging.restapi.models.db.LogEntityTable
 import de.thepiwo.lifelogging.restapi.utils.Helper.{timestampEndDay, timestampStartDay}
@@ -17,22 +18,26 @@ class LoggingService(val databaseService: DatabaseService)
   import databaseService._
   import databaseService.driver.api._
 
-  private def getLogsQuery(loggedUser: UserEntity, dateOption: Option[LocalDate]) =
-    dateOption match {
+  private def getLogsQuery(loggedUser: UserEntity, dateOptions: Option[DateOptions]) =
+    dateOptions match {
       case None =>
         logs
           .filter(_.userId === loggedUser.id)
           .sortBy(_.createdAt desc)
 
-      case Some(localDate) =>
+      case Some(date) =>
         logs
           .filter(_.userId === loggedUser.id)
-          .filter(_.createdAtClient.between(timestampStartDay(localDate), timestampEndDay(localDate)))
+          .filter(_.createdAtClient
+            .between(
+              timestampStartDay(date.fromDate),
+              timestampEndDay(date.toDate.getOrElse(date.fromDate))
+            ))
           .sortBy(_.createdAt desc)
     }
 
-  def getLogs(loggedUser: UserEntity, dateOption: Option[LocalDate]): Future[Seq[LogEntity]] =
-    db.run(getLogsQuery(loggedUser, dateOption).result)
+  def getLogs(loggedUser: UserEntity, dateOptions: Option[DateOptions]): Future[Seq[LogEntity]] =
+    db.run(getLogsQuery(loggedUser, dateOptions).result)
 
   def deleteLogById(loggedUser: UserEntity, logId: Long): Future[Int] =
     db.run(logs.filter(_.userId === loggedUser.id)
@@ -44,8 +49,8 @@ class LoggingService(val databaseService: DatabaseService)
       .filter(_.createdAtClient > Timestamp.valueOf(LocalDateTime.now().minusHours(2)))
       .distinct.length.result)
 
-  def getLogs(loggedUser: UserEntity, logKey: String, dateOption: Option[LocalDate]): Future[Seq[LogEntity]] =
-    db.run(getLogsQuery(loggedUser, dateOption).filter(_.key === logKey).result)
+  def getLogs(loggedUser: UserEntity, logKey: String, dateOptions: Option[DateOptions]): Future[Seq[LogEntity]] =
+    db.run(getLogsQuery(loggedUser, dateOptions).filter(_.key === logKey).result)
 
   def createLogItem(loggedUser: UserEntity, logEntityInsert: LogEntityInsert): Future[LogEntity] = {
     val logEntity = LogEntity(None,
