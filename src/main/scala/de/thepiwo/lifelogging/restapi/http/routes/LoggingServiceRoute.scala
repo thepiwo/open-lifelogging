@@ -25,11 +25,12 @@ class LoggingServiceRoute(val authService: AuthService, loggingService: LoggingS
 
   val route: Route = pathPrefix("logs") {
     authenticate { implicit loggedUser =>
-      parameters("date".?, "toDate".?) { case (fromDateString, toDateString) =>
+      parameters("date".?, "toDate".?, "unlimited".?) { case (fromDateString, toDateString, unlimitedString) =>
         val fromDateOption: Option[LocalDate] = fromDateString.flatMap(localDate)
         val toDateOption: Option[LocalDate] = toDateString.flatMap(localDate)
 
-        implicit val dateOptions = fromDateOption.map(fromDate => DateOptions(fromDate, toDateOption))
+        implicit val unlimited: Boolean = unlimitedString.contains("true")
+        implicit val dateOptions: Option[DateOptions] = fromDateOption.map(fromDate => DateOptions(fromDate, toDateOption))
 
         allLogsRoute ~
           logsByKeyRoute ~
@@ -40,21 +41,21 @@ class LoggingServiceRoute(val authService: AuthService, loggingService: LoggingS
     }
   }
 
-  def allLogsRoute(implicit loggedUser: UserEntity, dateOptions: Option[DateOptions]): Route =
+  def allLogsRoute(implicit loggedUser: UserEntity, dateOptions: Option[DateOptions], unlimited: Boolean): Route =
     pathEndOrSingleSlash {
       get {
-        onComplete(getLogs(loggedUser, dateOptions)) {
+        onComplete(getLogs(loggedUser, dateOptions, unlimited)) {
           case Success(logs) => complete(OK -> logs.toJson)
           case Failure(e) => handleFailure(e)
         }
       }
     }
 
-  def logsByKeyRoute(implicit loggedUser: UserEntity, dateOptions: Option[DateOptions]): Route =
+  def logsByKeyRoute(implicit loggedUser: UserEntity, dateOptions: Option[DateOptions], unlimited: Boolean): Route =
     path("key" / Remaining) { logKey =>
       pathEndOrSingleSlash {
         get {
-          onComplete(getLogs(loggedUser, logKey, dateOptions)) {
+          onComplete(getLogs(loggedUser, logKey, dateOptions, unlimited)) {
             case Success(logs) => complete(OK -> logs.toJson)
             case Failure(e) => handleFailure(e)
           }

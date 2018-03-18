@@ -38,14 +38,14 @@ class LoggingService(val databaseService: DatabaseService)
           .sortBy(_.createdAt desc)
     }
 
-  def getLogs(loggedUser: UserEntity, dateOptions: Option[DateOptions]): Future[Seq[LogEntity]] = {
+  def getLogs(loggedUser: UserEntity, dateOptions: Option[DateOptions], unlimited: Boolean): Future[Seq[LogEntity]] = {
     val filterLogsQuery: Query[Logs, LogEntity, Seq] = getLogsQuery(loggedUser, dateOptions)
-    getLimitedLogs(filterLogsQuery)
+    getLimitedLogs(filterLogsQuery, unlimited)
   }
 
-  def getLogs(loggedUser: UserEntity, logKey: String, dateOptions: Option[DateOptions]): Future[Seq[LogEntity]] = {
+  def getLogs(loggedUser: UserEntity, logKey: String, dateOptions: Option[DateOptions], unlimited: Boolean): Future[Seq[LogEntity]] = {
     val filterLogsQuery: Query[Logs, LogEntity, Seq] = getLogsQuery(loggedUser, dateOptions).filter(_.key === logKey)
-    getLimitedLogs(filterLogsQuery)
+    getLimitedLogs(filterLogsQuery, unlimited)
   }
 
   def deleteLogById(loggedUser: UserEntity, logId: Long): Future[Int] =
@@ -71,10 +71,14 @@ class LoggingService(val databaseService: DatabaseService)
     db.run(logs returning logs += logEntity)
   }
 
-  private def getLimitedLogs(filterLogsQuery: Query[Logs, LogEntity, Seq]): Future[Seq[LogEntity]] =
-    getValuesForLimit(filterLogsQuery).flatMap { case (maxId, minId, modSelector) =>
-      val limitedLogsQuery = getLimitedLogs(filterLogsQuery, maxId, minId, modSelector, UNIFORM_LIMIT - 2)
-      db.run(limitedLogsQuery.sortBy(_.createdAt desc).result)
+  private def getLimitedLogs(filterLogsQuery: Query[Logs, LogEntity, Seq], unlimited: Boolean): Future[Seq[LogEntity]] =
+    if (unlimited) {
+      db.run(filterLogsQuery.sortBy(_.createdAt desc).result)
+    } else {
+      getValuesForLimit(filterLogsQuery).flatMap { case (maxId, minId, modSelector) =>
+        val limitedLogsQuery = getLimitedLogs(filterLogsQuery, maxId, minId, modSelector, UNIFORM_LIMIT - 2)
+        db.run(limitedLogsQuery.sortBy(_.createdAt desc).result)
+      }
     }
 
   private def getLimitedLogs(filterLogsQuery: Query[Logs, LogEntity, Seq], maxId: Long, minId: Long, modSelector: Long, limit: Long): Query[Logs, LogEntity, Seq] = {
