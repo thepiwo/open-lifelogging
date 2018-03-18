@@ -13,7 +13,7 @@ import de.thepiwo.lifelogging.restapi.utils.Helper.localDate
 import de.thepiwo.lifelogging.restapi.utils.JsonProtocol
 import spray.json._
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 case class DateOptions(fromDate: LocalDate, toDate: Option[LocalDate])

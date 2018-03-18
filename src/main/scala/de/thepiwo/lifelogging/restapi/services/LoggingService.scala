@@ -18,6 +18,8 @@ class LoggingService(val databaseService: DatabaseService)
   import databaseService._
   import databaseService.driver.api._
 
+  private val UNIFORM_LIMIT: Long = 2000
+
   private def getLogsQuery(loggedUser: UserEntity, dateOptions: Option[DateOptions]) =
     dateOptions match {
       case None =>
@@ -36,8 +38,15 @@ class LoggingService(val databaseService: DatabaseService)
           .sortBy(_.createdAt desc)
     }
 
-  def getLogs(loggedUser: UserEntity, dateOptions: Option[DateOptions]): Future[Seq[LogEntity]] =
-    db.run(getLogsQuery(loggedUser, dateOptions).result)
+  def getLogs(loggedUser: UserEntity, dateOptions: Option[DateOptions]): Future[Seq[LogEntity]] = {
+    val filterLogsQuery: Query[Logs, LogEntity, Seq] = getLogsQuery(loggedUser, dateOptions)
+    getLimitedLogs(filterLogsQuery)
+  }
+
+  def getLogs(loggedUser: UserEntity, logKey: String, dateOptions: Option[DateOptions]): Future[Seq[LogEntity]] = {
+    val filterLogsQuery: Query[Logs, LogEntity, Seq] = getLogsQuery(loggedUser, dateOptions).filter(_.key === logKey)
+    getLimitedLogs(filterLogsQuery)
+  }
 
   def deleteLogById(loggedUser: UserEntity, logId: Long): Future[Int] =
     db.run(logs.filter(_.userId === loggedUser.id)
@@ -48,9 +57,6 @@ class LoggingService(val databaseService: DatabaseService)
     db.run(logs.filter(_.userId === loggedUser.id)
       .filter(_.createdAtClient > Timestamp.valueOf(LocalDateTime.now().minusHours(2)))
       .distinct.length.result)
-
-  def getLogs(loggedUser: UserEntity, logKey: String, dateOptions: Option[DateOptions]): Future[Seq[LogEntity]] =
-    db.run(getLogsQuery(loggedUser, dateOptions).filter(_.key === logKey).result)
 
   def createLogItem(loggedUser: UserEntity, logEntityInsert: LogEntityInsert): Future[LogEntity] = {
     val logEntity = LogEntity(None,
@@ -64,6 +70,34 @@ class LoggingService(val databaseService: DatabaseService)
 
     db.run(logs returning logs += logEntity)
   }
+
+  private def getLimitedLogs(filterLogsQuery: Query[Logs, LogEntity, Seq]): Future[Seq[LogEntity]] =
+    getValuesForLimit(filterLogsQuery).flatMap { case (maxId, minId, modSelector) =>
+      val limitedLogsQuery = getLimitedLogs(filterLogsQuery, maxId, minId, modSelector, UNIFORM_LIMIT - 2)
+      db.run(limitedLogsQuery.sortBy(_.createdAt desc).result)
+    }
+
+  private def getLimitedLogs(filterLogsQuery: Query[Logs, LogEntity, Seq], maxId: Long, minId: Long, modSelector: Long, limit: Long): Query[Logs, LogEntity, Seq] = {
+    val filterLogsQueryWithIndex = filterLogsQuery.map(_.id).zipWithIndex
+
+    val idSet = filterLogsQueryWithIndex
+      .filter { case (id, row) =>
+        val modulo = Math.max(Math.ceil(modSelector / limit).toLong, 1)
+        id === maxId || id === minId || (row % modulo) === 0L
+      }.map(_._1)
+
+    logs.filter(_.id in idSet)
+  }
+
+  private def getValuesForLimit(filterLogsQuery: Query[Logs, LogEntity, Seq]): Future[(Long, Long, Long)] =
+    db.run(filterLogsQuery.map(_.id).zipWithIndex.result).map { idWithIndex: Seq[(Option[Long], Long)] =>
+      val modSelector = idWithIndex.map(_._2).max
+      val maxId = idWithIndex.map(_._1.getOrElse(0L)).max
+      val minId = idWithIndex.map(_._1.getOrElse(0L)).min
+
+      (maxId, minId, modSelector)
+    }
+
 
   def getLogKeys(loggedUser: UserEntity): Future[Seq[String]] =
     db.run(logs.filter(_.userId === loggedUser.id).map(_.key).result)
