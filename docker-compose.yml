@@ -1,0 +1,34 @@
+version: '2'
+
+services:
+  postgres:
+    restart: always
+    image: postgres:9-alpine
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=mySecretPw
+      - POSTGRES_DB=open-lifelogging
+    volumes:
+      - open-lifelogging-db:/var/lib/postgresql/data
+
+  backend:
+    image: open-lifelogging
+    ports:
+        - "9001:9001"
+    environment:
+      - PSQL_URL=jdbc:postgresql://postgres/open-lifelogging
+      - PSQL_USER=root
+      - PSQL_PASSWORD=mySecretPw
+    depends_on:
+      - postgres
+
+  frontend:
+    image: open-lifelogging-web
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+
+volumes:
+  open-lifelogging-db:
