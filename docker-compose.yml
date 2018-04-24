@@ -12,7 +12,7 @@ services:
       - open-lifelogging-db:/var/lib/postgresql/data
 
   backend:
-    image: open-lifelogging
+    build: https://github.com/thepiwo/open-lifelogging.git
     ports:
         - "9001:9001"
     environment:
@@ -23,7 +23,7 @@ services:
       - postgres
 
   frontend:
-    image: open-lifelogging-web
+    build: https://github.com/thepiwo/open-lifelogging-web.git
     ports:
       - "8080:80"
     depends_on:
