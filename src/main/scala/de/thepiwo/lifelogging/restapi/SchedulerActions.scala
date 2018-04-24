@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorSystem, Props}
 import akka.util.Timeout
 import com.typesafe.config.{Config, ConfigFactory}
 import de.thepiwo.lifelogging.restapi.SchedulerMessages.{UpdateLastFm, UpdateLastFmFor}
-import de.thepiwo.lifelogging.restapi.connector.LastFm
+import de.thepiwo.lifelogging.restapi.connector.lastfm.LastFm
 import de.thepiwo.lifelogging.restapi.models.{LogEntityInsert, UserEntity}
 import de.thepiwo.lifelogging.restapi.services.{LoggingService, UsersService}
 import org.slf4j.{Logger, LoggerFactory}
@@ -38,14 +38,14 @@ class SchedulerActions(val usersService: UsersService, loggingService: LoggingSe
 
 class SchedulerActor(val usersService: UsersService, loggingService: LoggingService)(implicit timeout: Timeout) extends Actor {
 
-  import de.thepiwo.lifelogging.restapi.connector.LastFmJsonProtocol._
+  import de.thepiwo.lifelogging.restapi.connector.lastfm.LastFmJsonProtocol._
   import usersService._
 
   val log: Logger = LoggerFactory.getLogger("SchedulerActor")
 
   log.debug("Started SchedulerActor")
 
-  def receive = {
+  def receive: PartialFunction[Any, Unit] = {
     case UpdateLastFm =>
       getLastFmUsers onComplete {
         case Success(users) =>

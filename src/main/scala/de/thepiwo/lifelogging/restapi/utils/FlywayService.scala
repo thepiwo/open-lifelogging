@@ -7,12 +7,12 @@ class FlywayService(jdbcUrl: String, dbUser: String, dbPassword: String) {
   private val flyway = new Flyway()
   flyway.setDataSource(jdbcUrl, dbUser, dbPassword)
 
-  def migrateDatabaseSchema = {
+  def migrateDatabaseSchema: FlywayService = {
     flyway.migrate()
     this
   }
 
-  def dropDatabase = {
+  def dropDatabase: FlywayService = {
     flyway.clean()
     this
   }

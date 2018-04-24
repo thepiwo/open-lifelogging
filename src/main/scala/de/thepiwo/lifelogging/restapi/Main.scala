@@ -12,7 +12,7 @@ import de.thepiwo.lifelogging.restapi.utils.{Config, DatabaseService, FlywayServ
 import scala.concurrent.ExecutionContext
 
 object Main extends App with Config {
-  implicit val actorSystem = ActorSystem("MainSystem")
+  implicit val actorSystem: ActorSystem = ActorSystem("MainSystem")
   implicit val executor: ExecutionContext = actorSystem.dispatcher
   implicit val log: LoggingAdapter = Logging(actorSystem, getClass)
   implicit val materializer: ActorMaterializer = ActorMaterializer()

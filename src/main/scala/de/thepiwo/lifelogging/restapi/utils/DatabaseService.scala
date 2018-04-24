@@ -27,8 +27,8 @@ class DatabaseService(jdbcUrl: String, dbUser: String, dbPassword: String) {
 
   import JsonSupportedPostgresDriver.api._
 
-  val driver = JsonSupportedPostgresDriver
-  val db = Database.forDataSource(dataSource, None)
+  val driver: JsonSupportedPostgresDriver.type = JsonSupportedPostgresDriver
+  val db: JsonSupportedPostgresDriver.backend.DatabaseDef = Database.forDataSource(dataSource, None)
   db.createSession()
 
 }
