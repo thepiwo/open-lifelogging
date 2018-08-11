@@ -33,4 +33,21 @@ object Helper {
     Try(LocalDate.parse(dateString, formatter)).toOption
   }
 
+  implicit final class Pipe[T](val x: T) extends AnyVal {
+    def |>[B](f: T => B) = f(x)
+  }
+
+  def emptyZeroOrMax(list: Seq[Long]): Long =
+    list match {
+      case Nil => 0
+      case nonEmpty => nonEmpty.max
+    }
+
+  def emptyZeroOrMin(list: Seq[Long]): Long =
+    list match {
+      case Nil => 0
+      case nonEmpty => nonEmpty.min
+    }
+
+
 }

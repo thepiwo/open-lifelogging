@@ -1,13 +1,14 @@
 package de.thepiwo.lifelogging.restapi.services
 
+import java.lang.Math.{ceil, max}
 import java.sql.Timestamp
 import java.time.LocalDateTime
 
 import de.thepiwo.lifelogging.restapi.http.routes.DateOptions
 import de.thepiwo.lifelogging.restapi.models._
 import de.thepiwo.lifelogging.restapi.models.db.LogEntityTable
-import de.thepiwo.lifelogging.restapi.utils.Helper.{timestampEndDay, timestampStartDay}
-import de.thepiwo.lifelogging.restapi.utils.{DatabaseService, Helper}
+import de.thepiwo.lifelogging.restapi.utils.Helper._
+import de.thepiwo.lifelogging.restapi.utils.DatabaseService
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -63,9 +64,9 @@ class LoggingService(val databaseService: DatabaseService)
       userId = loggedUser.id,
       key = logEntityInsert.key,
       data = logEntityInsert.data,
-      hash = Helper.getJsonHash(logEntityInsert.data),
-      createdAtClient = Helper.timestamp(logEntityInsert.createdAtClient),
-      createdAt = Helper.now()
+      hash = getJsonHash(logEntityInsert.data),
+      createdAtClient = timestamp(logEntityInsert.createdAtClient),
+      createdAt = now()
     )
 
     db.run(logs returning logs += logEntity)
@@ -86,7 +87,7 @@ class LoggingService(val databaseService: DatabaseService)
 
     val idSet = filterLogsQueryWithIndex
       .filter { case (id, row) =>
-        val modulo = Math.max(Math.ceil(modSelector / limit).toLong, 1)
+        val modulo = max(ceil(modSelector / limit).toLong, 1)
         id === maxId || id === minId || (row % modulo) === 0L
       }.map(_._1)
 
@@ -95,13 +96,12 @@ class LoggingService(val databaseService: DatabaseService)
 
   private def getValuesForLimit(filterLogsQuery: Query[Logs, LogEntity, Seq]): Future[(Long, Long, Long)] =
     db.run(filterLogsQuery.map(_.id).zipWithIndex.result).map { idWithIndex: Seq[(Option[Long], Long)] =>
-      val modSelector = idWithIndex.map(_._2).max
-      val maxId = idWithIndex.map(_._1.getOrElse(0L)).max
-      val minId = idWithIndex.map(_._1.getOrElse(0L)).min
+      val modSelector = idWithIndex.map(_._2) |> emptyZeroOrMax
+      val maxId = idWithIndex.map(_._1.getOrElse(0L)) |> emptyZeroOrMax
+      val minId = idWithIndex.map(_._1.getOrElse(0L)) |> emptyZeroOrMin
 
       (maxId, minId, modSelector)
     }
-
 
   def getLogKeys(loggedUser: UserEntity): Future[Seq[String]] =
     db.run(logs.filter(_.userId === loggedUser.id).map(_.key).result)
