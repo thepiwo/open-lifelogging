@@ -49,5 +49,4 @@ object Helper {
       case nonEmpty => nonEmpty.min
     }
 
-
 }

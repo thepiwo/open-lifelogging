@@ -8,7 +8,7 @@ import de.thepiwo.lifelogging.restapi.http.routes.DateOptions
 import de.thepiwo.lifelogging.restapi.models._
 import de.thepiwo.lifelogging.restapi.models.db.LogEntityTable
 import de.thepiwo.lifelogging.restapi.utils.Helper._
-import de.thepiwo.lifelogging.restapi.utils.DatabaseService
+import de.thepiwo.lifelogging.restapi.utils.{DatabaseService, LogEntityReturn}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -39,14 +39,20 @@ class LoggingService(val databaseService: DatabaseService)
           .sortBy(_.createdAt desc)
     }
 
-  def getLogs(loggedUser: UserEntity, dateOptions: Option[DateOptions], unlimited: Boolean): Future[Seq[LogEntity]] = {
+  def getLogs(loggedUser: UserEntity, dateOptions: Option[DateOptions], unlimited: Boolean): Future[LogEntityReturn] = {
     val filterLogsQuery: Query[Logs, LogEntity, Seq] = getLogsQuery(loggedUser, dateOptions)
-    getLimitedLogs(filterLogsQuery, unlimited)
+    for {
+      count <- getCountLogs(filterLogsQuery)
+      logs <- getLimitedLogs(filterLogsQuery, unlimited)
+    } yield LogEntityReturn(count, logs)
   }
 
-  def getLogs(loggedUser: UserEntity, logKey: String, dateOptions: Option[DateOptions], unlimited: Boolean): Future[Seq[LogEntity]] = {
+  def getLogs(loggedUser: UserEntity, logKey: String, dateOptions: Option[DateOptions], unlimited: Boolean): Future[LogEntityReturn] = {
     val filterLogsQuery: Query[Logs, LogEntity, Seq] = getLogsQuery(loggedUser, dateOptions).filter(_.key === logKey)
-    getLimitedLogs(filterLogsQuery, unlimited)
+    for {
+      count <- getCountLogs(filterLogsQuery)
+      logs <- getLimitedLogs(filterLogsQuery, unlimited)
+    } yield LogEntityReturn(count, logs)
   }
 
   def deleteLogById(loggedUser: UserEntity, logId: Long): Future[Int] =
@@ -71,6 +77,8 @@ class LoggingService(val databaseService: DatabaseService)
 
     db.run(logs returning logs += logEntity)
   }
+
+  private def getCountLogs(filterLogsQuery: Query[Logs, LogEntity, Seq]): Future[Int] = db.run(filterLogsQuery.size.result)
 
   private def getLimitedLogs(filterLogsQuery: Query[Logs, LogEntity, Seq], unlimited: Boolean): Future[Seq[LogEntity]] =
     if (unlimited) {
