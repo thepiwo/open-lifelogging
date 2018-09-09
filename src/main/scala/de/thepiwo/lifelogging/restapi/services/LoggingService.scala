@@ -26,7 +26,7 @@ class LoggingService(val databaseService: DatabaseService)
       case None =>
         logs
           .filter(_.userId === loggedUser.id)
-          .sortBy(_.createdAt desc)
+          .sortBy(_.createdAtClient desc)
 
       case Some(date) =>
         logs
@@ -36,7 +36,7 @@ class LoggingService(val databaseService: DatabaseService)
               timestampStartDay(date.fromDate),
               timestampEndDay(date.toDate.getOrElse(date.fromDate))
             ))
-          .sortBy(_.createdAt desc)
+          .sortBy(_.createdAtClient desc)
     }
 
   def getLogs(loggedUser: UserEntity, dateOptions: Option[DateOptions], unlimited: Boolean): Future[LogEntityReturn] = {
@@ -110,6 +110,21 @@ class LoggingService(val databaseService: DatabaseService)
 
       (maxId, minId, modSelector)
     }
+
+  def getLatestLogs(loggedUser: UserEntity, limitOption: Option[Long]): Future[LogEntityReturn] = {
+    val limit = limitOption match {
+      case Some(value) => value
+      case None => UNIFORM_LIMIT
+    }
+
+    val limitLogsQuery: Query[Logs, LogEntity, Seq] =
+      logs.filter(_.userId === loggedUser.id).sortBy(_.createdAtClient desc)
+
+    for {
+      count <- getCountLogs(limitLogsQuery)
+      logs <- db.run(limitLogsQuery.take(limit).result)
+    } yield LogEntityReturn(count, logs)
+  }
 
   def getLogKeys(loggedUser: UserEntity): Future[Seq[String]] =
     db.run(logs.filter(_.userId === loggedUser.id).map(_.key).result)

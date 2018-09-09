@@ -25,21 +25,25 @@ class LoggingServiceRoute(val authService: AuthService, loggingService: LoggingS
 
   val route: Route = pathPrefix("logs") {
     authenticate { implicit loggedUser =>
-      parameters("date".?, "toDate".?, "unlimited".?) { case (fromDateString, toDateString, unlimitedString) =>
-        val fromDateOption: Option[LocalDate] = fromDateString.flatMap(localDate)
-        val toDateOption: Option[LocalDate] = toDateString.flatMap(localDate)
-
-        implicit val unlimited: Boolean = unlimitedString.contains("true")
-        implicit val dateOptions: Option[DateOptions] = fromDateOption.map(fromDate => DateOptions(fromDate, toDateOption))
-
-        allLogsRoute ~
-          logsByKeyRoute ~
-          getLogKeysRoute ~
-          logByIdRoute ~
-          areLogsCurrentRoute
-      }
+      byDateRoutes ~
+        getLatestLogsRoute ~
+        getLogKeysRoute ~
+        logByIdRoute ~
+        areLogsCurrentRoute
     }
   }
+
+  def byDateRoutes(implicit loggedUser: UserEntity): Route =
+    parameters("date".?, "toDate".?, "unlimited".?) { case (fromDateString, toDateString, unlimitedString) =>
+      val fromDateOption: Option[LocalDate] = fromDateString.flatMap(localDate)
+      val toDateOption: Option[LocalDate] = toDateString.flatMap(localDate)
+
+      implicit val unlimited: Boolean = unlimitedString.contains("true")
+      implicit val dateOptions: Option[DateOptions] = fromDateOption.map(fromDate => DateOptions(fromDate, toDateOption))
+
+      allLogsRoute ~
+        logsByKeyRoute
+    }
 
   def allLogsRoute(implicit loggedUser: UserEntity, dateOptions: Option[DateOptions], unlimited: Boolean): Route =
     pathEndOrSingleSlash {
@@ -68,6 +72,20 @@ class LoggingServiceRoute(val authService: AuthService, loggingService: LoggingS
               }
             }
           }
+      }
+    }
+
+  def getLatestLogsRoute(implicit loggedUser: UserEntity): Route =
+    path("latest") {
+      parameters("limit".?) { limitString =>
+        pathEndOrSingleSlash {
+          get {
+            onComplete(getLatestLogs(loggedUser, limitString.map(_.toLong))) {
+              case Success(logs) => complete(OK -> logs.toJson)
+              case Failure(e) => handleFailure(e)
+            }
+          }
+        }
       }
     }
 
