@@ -1,12 +1,9 @@
-FROM openjdk:8 as build
+FROM openjdk:13-jdk-buster as build
 
-ENV SCALA_VERSION 2.12.5
-ENV SBT_VERSION 1.1.2
+ENV SCALA_VERSION 2.13.1
+ENV SBT_VERSION 1.3.4
 
 # FROM https://github.com/hseeberger/scala-sbt
-# Scala expects this file
-RUN touch /usr/lib/jvm/java-8-openjdk-amd64/release
-
 # Install Scala
 RUN \
   curl -fsL https://downloads.typesafe.com/scala/$SCALA_VERSION/scala-$SCALA_VERSION.tgz | tar xfz - -C /root/ && \
@@ -28,12 +25,12 @@ COPY . /app
 RUN sbt assembly
 
 
-FROM openjdk:8-jre-alpine as server
+FROM openjdk:13-alpine as server
 
-ENV APP_VERSION 0.0.2
+ENV APP_VERSION 0.0.3
 
 WORKDIR /app
-COPY --from=build /app/target/scala-2.12/open-lifelogging-assembly-$APP_VERSION.jar /app/open-lifelogging.jar
+COPY --from=build /app/target/scala-2.13/open-lifelogging-assembly-$APP_VERSION.jar /app/open-lifelogging.jar
 
 EXPOSE 9001
 CMD ["java", "-jar", "/app/open-lifelogging.jar"]

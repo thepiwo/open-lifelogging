@@ -1,37 +1,38 @@
 import sbt.Keys._
 import sbt.Resolver
 
-scalaVersion := "2.12.5"
-scalacOptions ++= Seq("-Xlint:-missing-interpolator", "-Xfatal-warnings", "-deprecation", "-feature", "-language:implicitConversions", "-language:postfixOps", "-Xmax-classfile-name", "240")
+scalaVersion := "2.13.1"
+scalacOptions ++= Seq("-Xlint:-missing-interpolator", "-Xfatal-warnings", "-deprecation", "-feature", "-language:implicitConversions", "-language:postfixOps")
 
 resolvers += Resolver.sonatypeRepo("releases")
 
 libraryDependencies ++= {
-  val akkaVersion = "10.1.1"
-  val flywayVersion = "5.0.7"
-  val hikariCpVersion = "3.1.0"
+  val akkaVersion = "2.6.1"
+  val akkaHttpVersion = "10.1.11"
+  val flywayVersion = "6.1.0"
+  val hikariCpVersion = "3.4.1"
   val logBackVersion = "1.2.3"
-  val postgresVersion = "42.2.2"
-  val scalaBcryptVersion = "3.1"
-  val scalaLoggingVersion = "3.9.0"
-  val scalaMacrosVersion = "2.1.1"
-  val scalaTestVersion = "3.0.5"
-  val slickVersion = "3.2.3"
-  val slickPGVersion = "0.16.1"
-  val sprayVersion = "1.3.4"
+  val postgresVersion = "42.2.8"
+  val scalaBcryptVersion = "4.1"
+  val scalaLoggingVersion = "3.9.2"
+  val scalaTestVersion = "3.1.0"
+  val slickVersion = "3.3.2"
+  val slickPGVersion = "0.18.1"
+  val sprayVersion = "1.3.5"
 
   Seq(
-    "com.typesafe.akka" %% "akka-http" % akkaVersion,
-    "com.typesafe.akka" %% "akka-http-core" % akkaVersion,
-    "com.typesafe.akka" %% "akka-http-testkit" % akkaVersion,
-    "com.typesafe.akka" %% "akka-http-spray-json" % akkaVersion,
+    "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+    "com.typesafe.akka" %% "akka-stream" % akkaVersion,
+    "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
+    "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion,
+    "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion,
+    "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion,
 
     "com.github.t3hnar" %% "scala-bcrypt" % scalaBcryptVersion,
     "com.typesafe.slick" %% "slick" % slickVersion,
     "org.postgresql" % "postgresql" % postgresVersion,
     "org.flywaydb" % "flyway-core" % flywayVersion,
 
-    "org.scalamacros" % "paradise_2.12.5" % scalaMacrosVersion,
     "com.zaxxer" % "HikariCP" % hikariCpVersion,
 
     "ch.qos.logback" % "logback-classic" % logBackVersion,
@@ -43,7 +44,8 @@ libraryDependencies ++= {
     "com.github.tminglei" %% "slick-pg_spray-json" % slickPGVersion,
 
     "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
-    "com.typesafe.akka" %% "akka-http-testkit" % akkaVersion % "test"
+    "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test",
+    "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % "test"
   )
 }
 
@@ -54,8 +56,8 @@ lazy val root = (project in file(".")).
   settings(
     name := "open-lifelogging",
     organization := "de.thepiwo",
-    version := "0.0.2",
-    scalaVersion := "2.12.5"
+    version := "0.0.3",
+    scalaVersion := "2.13.1"
   )
 
 test in assembly := {}

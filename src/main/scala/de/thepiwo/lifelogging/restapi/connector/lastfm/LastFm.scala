@@ -31,7 +31,6 @@ object LastFm {
   private val URL: String = config.getString("connector.lastfm.url")
 
   private implicit val system: ActorSystem = ActorSystem()
-  private implicit val materializer: ActorMaterializer = ActorMaterializer(ActorMaterializerSettings(system))
 
   import LastFmJsonProtocol._
 

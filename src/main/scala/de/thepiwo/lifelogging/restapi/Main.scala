@@ -4,7 +4,6 @@ package de.thepiwo.lifelogging.restapi
 import akka.actor.ActorSystem
 import akka.event.{Logging, LoggingAdapter}
 import akka.http.scaladsl.Http
-import akka.stream.ActorMaterializer
 import de.thepiwo.lifelogging.restapi.http.HttpService
 import de.thepiwo.lifelogging.restapi.services.{AuthService, LoggingService, UsersService}
 import de.thepiwo.lifelogging.restapi.utils.{Config, DatabaseService, FlywayService}
@@ -15,7 +14,6 @@ object Main extends App with Config {
   implicit val actorSystem: ActorSystem = ActorSystem("MainSystem")
   implicit val executor: ExecutionContext = actorSystem.dispatcher
   implicit val log: LoggingAdapter = Logging(actorSystem, getClass)
-  implicit val materializer: ActorMaterializer = ActorMaterializer()
 
   val flywayService = new FlywayService(jdbcUrl, dbUser, dbPassword)
   flywayService.migrateDatabaseSchema

@@ -33,7 +33,7 @@ class SchedulerActions(val usersService: UsersService, loggingService: LoggingSe
   private val system = ActorSystem("SchedulerSystem")
   private val actor = system.actorOf(Props(new SchedulerActor(usersService, loggingService)(timeout)), "SchedulerActor")
 
-  system.scheduler.schedule(0 milliseconds, LASTFM_RATE minute, actor, SchedulerMessages.UpdateLastFm)
+  system.scheduler.scheduleAtFixedRate(0 milliseconds, LASTFM_RATE minute, actor, SchedulerMessages.UpdateLastFm)
 }
 
 class SchedulerActor(val usersService: UsersService, loggingService: LoggingService)(implicit timeout: Timeout) extends Actor {
