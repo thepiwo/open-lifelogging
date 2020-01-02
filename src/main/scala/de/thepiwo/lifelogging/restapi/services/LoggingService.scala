@@ -78,15 +78,28 @@ class LoggingService(val databaseService: DatabaseService)
     db.run(logs returning logs += logEntity)
   }
 
+  def createLogItems(loggedUser: UserEntity, logEntitiesInsert: Seq[LogEntityInsert]): Future[Seq[LogEntity]] = {
+    val logEntities = logEntitiesInsert.map(logEntityInsert => LogEntity(None,
+      userId = loggedUser.id,
+      key = logEntityInsert.key,
+      data = logEntityInsert.data,
+      hash = getJsonHash(logEntityInsert.data),
+      createdAtClient = timestamp(logEntityInsert.createdAtClient),
+      createdAt = now()
+    ))
+
+    db.run(logs returning logs ++= logEntities)
+  }
+
   private def getCountLogs(filterLogsQuery: Query[Logs, LogEntity, Seq]): Future[Int] = db.run(filterLogsQuery.size.result)
 
   private def getLimitedLogs(filterLogsQuery: Query[Logs, LogEntity, Seq], unlimited: Boolean): Future[Seq[LogEntity]] =
     if (unlimited) {
-      db.run(filterLogsQuery.sortBy(_.createdAt desc).result)
+      db.run(filterLogsQuery.sortBy(_.createdAtClient desc).result)
     } else {
       getValuesForLimit(filterLogsQuery).flatMap { case (maxId, minId, modSelector) =>
         val limitedLogsQuery = getLimitedLogs(filterLogsQuery, maxId, minId, modSelector, UNIFORM_LIMIT - 2)
-        db.run(limitedLogsQuery.sortBy(_.createdAt desc).result)
+        db.run(limitedLogsQuery.sortBy(_.createdAtClient desc).result)
       }
     }
 
@@ -110,6 +123,13 @@ class LoggingService(val databaseService: DatabaseService)
 
       (maxId, minId, modSelector)
     }
+
+  def getLatestLog(loggedUser: UserEntity, logKey: String): Future[Option[LogEntity]] = {
+    val limitLogsQuery: Query[Logs, LogEntity, Seq] =
+      logs.filter(_.userId === loggedUser.id).sortBy(_.createdAtClient desc)
+
+    db.run(limitLogsQuery.take(1).result.map(_.headOption))
+  }
 
   def getLatestLogs(loggedUser: UserEntity, limitOption: Option[Long]): Future[LogEntityReturn] = {
     val limit = limitOption match {

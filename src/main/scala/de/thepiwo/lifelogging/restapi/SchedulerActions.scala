@@ -33,7 +33,7 @@ class SchedulerActions(val usersService: UsersService, loggingService: LoggingSe
   private val system = ActorSystem("SchedulerSystem")
   private val actor = system.actorOf(Props(new SchedulerActor(usersService, loggingService)(timeout)), "SchedulerActor")
 
-  system.scheduler.scheduleAtFixedRate(0 milliseconds, LASTFM_RATE minute, actor, SchedulerMessages.UpdateLastFm)
+  system.scheduler.scheduleAtFixedRate(0 milliseconds, LASTFM_RATE minute, actor, UpdateLastFm)
 }
 
 class SchedulerActor(val usersService: UsersService, loggingService: LoggingService)(implicit timeout: Timeout) extends Actor {
@@ -57,16 +57,14 @@ class SchedulerActor(val usersService: UsersService, loggingService: LoggingServ
 
     case UpdateLastFmFor(username, user) =>
       log.debug(s"Received UpdateLastFmFor $username")
-      LastFm.RecentTracks(username) onComplete {
-        case Success(tracks) =>
-          tracks.recenttracks.track.foreach { track =>
-            val playingDate = track.date match {
-              case Some(date) => date.uts.toLong
-              case None => System.currentTimeMillis()
-            }
-            loggingService.createLogItem(user, LogEntityInsert("LastFMSong", track.toJson, playingDate))
-          }
-        case Failure(e) => e.printStackTrace()
-      }
+      for {
+        latestLogEntity <- loggingService.getLatestLog(user, "LastFMSong")
+        tracks <- LastFm.RecentTracks(username, latestLogEntity.map(_.createdAtClient))
+        _ = log.debug(s"UpdateLastFmFor ${tracks.length} tracks")
+        logEntries = tracks
+          .filter(_.date.isDefined)
+          .map(track => LogEntityInsert("LastFMSong", track.toJson, track.date.get.uts.toLong * 1000))
+        inserted <- loggingService.createLogItems(user, logEntries)
+      } yield inserted
   }
 }
