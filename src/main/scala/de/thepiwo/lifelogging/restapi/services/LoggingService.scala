@@ -126,7 +126,10 @@ class LoggingService(val databaseService: DatabaseService)
 
   def getLatestLog(loggedUser: UserEntity, logKey: String): Future[Option[LogEntity]] = {
     val limitLogsQuery: Query[Logs, LogEntity, Seq] =
-      logs.filter(_.userId === loggedUser.id).sortBy(_.createdAtClient desc)
+      logs
+        .filter(_.userId === loggedUser.id)
+        .filter(_.key === logKey)
+        .sortBy(_.createdAtClient desc)
 
     db.run(limitLogsQuery.take(1).result.map(_.headOption))
   }
