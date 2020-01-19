@@ -19,7 +19,7 @@ class LoggingService(val databaseService: DatabaseService)
   import databaseService._
   import databaseService.driver.api._
 
-  private val UNIFORM_LIMIT: Long = 2000
+  private val UNIFORM_LIMIT: Long = 20000
 
   private def getLogsQuery(loggedUser: UserEntity, dateOptions: Option[DateOptions]) =
     dateOptions match {
