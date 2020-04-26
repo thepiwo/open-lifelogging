@@ -108,7 +108,7 @@ class LoggingService(val databaseService: DatabaseService)
 
     val idSet = filterLogsQueryWithIndex
       .filter { case (id, row) =>
-        val modulo = max(ceil(modSelector / limit).toLong, 1)
+        val modulo = max(ceil(modSelector.toDouble / limit.toDouble).toLong, 1)
         id === maxId || id === minId || (row % modulo) === 0L
       }.map(_._1)
 
