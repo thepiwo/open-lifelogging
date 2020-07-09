@@ -12,10 +12,13 @@ let insert_lines = data.map(l => {
     longitude: l.longitudeE7 / 10000000,
   };
 
+  // timestamp of last import
+  if (l.timestampMs <= 1579432391671) return null;
+
   let data = JSON.stringify(new_data);
 
   return `(1, 'CoordEntity', ${timestamp}, '${data}'::JSONB, encode(digest('${data}', 'sha256'), 'hex'), ${timestamp})`
-});
+}).filter(x => x);
 
 let insert = insert_header + insert_lines.join(',\n');
 fs.writeFileSync('google.sql', insert, 'utf8');
