@@ -4,6 +4,7 @@ import java.sql.Timestamp
 
 import de.thepiwo.lifelogging.restapi.models.LogEntity
 import de.thepiwo.lifelogging.restapi.utils.DatabaseService
+import slick.collection.heterogeneous.HNil
 import spray.json.JsValue
 
 trait LogEntityTable extends UserEntityTable {
@@ -31,8 +32,7 @@ trait LogEntityTable extends UserEntityTable {
 
     def createdAt = column[Timestamp]("created_at")
 
-    def * = (id, userId, key, data, hash, createdAtClient, createdAt) <> ((LogEntity.apply _).tupled, LogEntity.unapply)
-
+    def * = (id :: userId :: key :: data :: hash :: createdAtClient :: createdAt :: HNil).mapTo[LogEntity]
   }
 
   protected val logs = TableQuery[Logs]

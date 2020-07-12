@@ -2,6 +2,7 @@ package de.thepiwo.lifelogging.restapi.models.db
 
 import de.thepiwo.lifelogging.restapi.models.TokenEntity
 import de.thepiwo.lifelogging.restapi.utils.DatabaseService
+import slick.collection.heterogeneous.HNil
 
 trait TokenEntityTable extends UserEntityTable {
 
@@ -20,7 +21,7 @@ trait TokenEntityTable extends UserEntityTable {
       onUpdate = ForeignKeyAction.Restrict,
       onDelete = ForeignKeyAction.Cascade)
 
-    def * = (id, userId, token) <> ((TokenEntity.apply _).tupled, TokenEntity.unapply)
+    def * = (id :: userId :: token :: HNil).mapTo[TokenEntity]
   }
 
   protected val tokens = TableQuery[Tokens]

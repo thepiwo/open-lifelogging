@@ -2,6 +2,7 @@ package de.thepiwo.lifelogging.restapi.models.db
 
 import de.thepiwo.lifelogging.restapi.models.UserSettingsEntity
 import de.thepiwo.lifelogging.restapi.utils.DatabaseService
+import slick.collection.heterogeneous.HNil
 
 trait UserSettingsEntityTable {
 
@@ -20,7 +21,7 @@ trait UserSettingsEntityTable {
 
     def lastFmUsername = column[Option[String]]("last_fm_username")
 
-    def * = (id, userId, lastFmUsername) <> ((UserSettingsEntity.apply _).tupled, UserSettingsEntity.unapply)
+    def * = (id :: userId :: lastFmUsername :: HNil).mapTo[UserSettingsEntity]
   }
 
   protected val userSettings = TableQuery[UserSettings]

@@ -2,6 +2,7 @@ package de.thepiwo.lifelogging.restapi.models.db
 
 import de.thepiwo.lifelogging.restapi.models.UserEntity
 import de.thepiwo.lifelogging.restapi.utils.DatabaseService
+import slick.collection.heterogeneous.HNil
 
 trait UserEntityTable {
 
@@ -16,7 +17,7 @@ trait UserEntityTable {
 
     def password = column[String]("password")
 
-    def * = (id, username, password) <> ((UserEntity.apply _).tupled, UserEntity.unapply)
+    def * = (id :: username :: password :: HNil).mapTo[UserEntity]
   }
 
   protected val users = TableQuery[Users]

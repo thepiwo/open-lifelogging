@@ -1,7 +1,7 @@
 FROM openjdk:15-jdk-buster as build
 
-ENV SCALA_VERSION 2.13.2
-ENV SBT_VERSION 1.3.10
+ENV SCALA_VERSION 2.13.3
+ENV SBT_VERSION 1.3.13
 
 # FROM https://github.com/hseeberger/scala-sbt
 # Install Scala
