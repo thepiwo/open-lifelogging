@@ -8,7 +8,6 @@ case class LogEntity(id: Long = 0,
                      userId: Long,
                      key: String,
                      data: JsValue,
-                     hash: String,
                      createdAtClient: Timestamp,
                      createdAt: Timestamp)
 

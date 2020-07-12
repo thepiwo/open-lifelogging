@@ -20,13 +20,11 @@ trait LogEntityTable extends UserEntityTable {
 
     def data = column[JsValue]("data")
 
-    def hash = column[String]("hash")
-
     def createdAtClient = column[Timestamp]("created_at_client")
 
     def createdAt = column[Timestamp]("created_at")
 
-    def * = (id :: userId :: key :: data :: hash :: createdAtClient :: createdAt :: HNil).mapTo[LogEntity]
+    def * = (id :: userId :: key :: data :: createdAtClient :: createdAt :: HNil).mapTo[LogEntity]
   }
 
   protected val logs = TableQuery[Logs]

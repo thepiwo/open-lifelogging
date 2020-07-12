@@ -70,7 +70,6 @@ class LoggingService(val databaseService: DatabaseService)
       userId = loggedUser.id,
       key = logEntityInsert.key,
       data = logEntityInsert.data,
-      hash = getJsonHash(logEntityInsert.data),
       createdAtClient = timestamp(logEntityInsert.createdAtClient),
       createdAt = now()
     )
@@ -83,12 +82,23 @@ class LoggingService(val databaseService: DatabaseService)
       userId = loggedUser.id,
       key = logEntityInsert.key,
       data = logEntityInsert.data,
-      hash = getJsonHash(logEntityInsert.data),
       createdAtClient = timestamp(logEntityInsert.createdAtClient),
       createdAt = now()
     ))
 
-    db.run((logs ++= logEntities).transactionally)
+    val logEntitiesMap = logEntities.groupBy(_.createdAtClient)
+    val timestamps = logEntities.map(_.createdAtClient)
+
+    for {
+      knownTimestamps <- db.run(logs.map(_.createdAtClient).result)
+
+      // optimization for comparing big lists
+      nonDuplicates = timestamps.concat(knownTimestamps)
+        .groupBy(identity)
+        .collect { case (x, List(_)) => logEntitiesMap.get(x).map(_.head) }
+        .filter(_.nonEmpty).map(_.get).toSeq
+      inserted <- db.run((logs ++= nonDuplicates).transactionally)
+    } yield inserted
   }
 
   private def getCountLogs(filterLogsQuery: Query[Logs, LogEntity, Seq]): Future[Int] = db.run(filterLogsQuery.size.result)
