@@ -4,7 +4,7 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.github.t3hnar.bcrypt._
 import de.thepiwo.lifelogging.restapi.http.HttpService
 import de.thepiwo.lifelogging.restapi.models.{TokenEntity, UserEntity}
-import de.thepiwo.lifelogging.restapi.services.{AuthService, LoggingService, UsersService}
+import de.thepiwo.lifelogging.restapi.services.{AuthService, ImportService, LoggingService, UsersService}
 import de.thepiwo.lifelogging.restapi.utils.{DatabaseService, JsonProtocol}
 import de.thepiwo.lifelogging.utils.TestPostgresDatabase._
 import de.thepiwo.lifelogging.utils.TestUserEntity
@@ -22,7 +22,8 @@ trait BaseServiceTest extends AnyWordSpec with Matchers with ScalatestRouteTest 
   val usersService = new UsersService(databaseService)
   val loggingService = new LoggingService(databaseService)
   val authService = new AuthService(databaseService)(usersService)
-  val httpService = new HttpService(usersService, authService, loggingService)
+  val importService = new ImportService(databaseService, loggingService)
+  val httpService = new HttpService(usersService, authService, loggingService, importService)
 
   def provisionUsersList(size: Int): Seq[TestUserEntity] = {
     val savedUsers = (1 to size).map { _ =>

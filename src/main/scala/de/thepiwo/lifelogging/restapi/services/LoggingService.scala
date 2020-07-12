@@ -78,7 +78,7 @@ class LoggingService(val databaseService: DatabaseService)
     db.run(logs returning logs += logEntity)
   }
 
-  def createLogItems(loggedUser: UserEntity, logEntitiesInsert: Seq[LogEntityInsert]): Future[Seq[LogEntity]] = {
+  def createLogItems(loggedUser: UserEntity, logEntitiesInsert: Seq[LogEntityInsert]): Future[Option[Int]] = {
     val logEntities = logEntitiesInsert.map(logEntityInsert => LogEntity(None,
       userId = loggedUser.id,
       key = logEntityInsert.key,
@@ -88,7 +88,7 @@ class LoggingService(val databaseService: DatabaseService)
       createdAt = now()
     ))
 
-    db.run(logs returning logs ++= logEntities)
+    db.run((logs ++= logEntities).transactionally)
   }
 
   private def getCountLogs(filterLogsQuery: Query[Logs, LogEntity, Seq]): Future[Int] = db.run(filterLogsQuery.size.result)
