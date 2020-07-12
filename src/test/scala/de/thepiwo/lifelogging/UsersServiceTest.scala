@@ -29,18 +29,18 @@ class UsersServiceTest extends BaseServiceTest with ScalaFutures {
 
     "retrieve user by id" in new Context {
       val testUser = testUsers(4).user
-      Get(s"/users/${testUser.id.get}") ~> route ~> check {
+      Get(s"/users/${testUser.id}") ~> route ~> check {
         responseAs[PublicUserEntity] should be(testUser.public)
       }
     }
 
     "delete currently logged user" in new Context {
       val testUser = testUsers(2).user
-      val header = "Token" -> testTokens.find(_.userId.contains(testUser.id.get)).get.token
+      val header = "Token" -> testTokens.find(_.userId == testUser.id).get.token
 
       Delete(s"/users/me") ~> addHeader(header._1, header._2) ~> route ~> check {
         response.status should be(OK)
-        whenReady(getUserById(testUser.id.get)) { result =>
+        whenReady(getUserById(testUser.id)) { result =>
           result should be(None: Option[PublicUserEntity])
         }
       }
@@ -48,10 +48,10 @@ class UsersServiceTest extends BaseServiceTest with ScalaFutures {
 
     "retrieve currently logged user" in new Context {
       val testUser = testUsers(1).user
-      val header = "Token" -> testTokens.find(_.userId.contains(testUser.id.get)).get.token
+      val header = "Token" -> testTokens.find(_.userId == testUser.id).get.token
 
       Get("/users/me") ~> addHeader(header._1, header._2) ~> route ~> check {
-        responseAs[PublicUserEntity] should be(testUsers.map(_.user).find(_.id.contains(testUser.id.get)).get.public)
+        responseAs[PublicUserEntity] should be(testUsers.map(_.user).find(_.id == testUser.id).get.public)
       }
     }
 
@@ -60,12 +60,12 @@ class UsersServiceTest extends BaseServiceTest with ScalaFutures {
       val newUsername = Random.nextString(10)
       val requestEntity = HttpEntity(MediaTypes.`application/json`,
         UserEntityUpdate(Some(newUsername), None).toJson.compactPrint)
-      val header = "Token" -> testTokens.find(_.userId.contains(testUser.id.get)).get.token
+      val header = "Token" -> testTokens.find(_.userId == testUser.id).get.token
 
       Post("/users/me", requestEntity) ~> addHeader(header._1, header._2) ~> route ~> check {
         responseAs[PublicUserEntity] should be(testUsers.map(_.user)
-          .find(_.id.contains(testUser.id.get)).get.copy(username = newUsername).public)
-        whenReady(getUserById(testUser.id.get)) { result =>
+          .find(_.id == testUser.id).get.copy(username = newUsername).public)
+        whenReady(getUserById(testUser.id)) { result =>
           result.get.username should be(newUsername)
         }
       }

@@ -35,7 +35,7 @@ class UsersService(val databaseService: DatabaseService)
   def deleteUser(loggedUser: UserEntity): Future[Int] =
     db.run(users.filter(_.id === loggedUser.id).delete)
 
-  private def getInternalUserById(id: Option[Long]): Future[Option[UserEntity]] =
+  private def getInternalUserById(id: Long): Future[Option[UserEntity]] =
     db.run(users.filter(_.id === id).result.headOption)
 
   def getLastFmUsers: Future[Seq[(String, UserEntity)]] =

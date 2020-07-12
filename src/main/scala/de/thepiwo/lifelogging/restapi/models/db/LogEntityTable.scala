@@ -3,20 +3,14 @@ package de.thepiwo.lifelogging.restapi.models.db
 import java.sql.Timestamp
 
 import de.thepiwo.lifelogging.restapi.models.LogEntity
-import de.thepiwo.lifelogging.restapi.utils.DatabaseService
 import slick.collection.heterogeneous.HNil
 import spray.json.JsValue
+import de.thepiwo.lifelogging.restapi.utils.JsonSupportedPostgresDriver.api._
 
 trait LogEntityTable extends UserEntityTable {
 
-  protected val databaseService: DatabaseService
-
-  import databaseService.driver.api._
-
-  class Logs(tag: Tag) extends Table[LogEntity](tag, "logs") {
-    def id = column[Option[Long]]("id", O.PrimaryKey, O.AutoInc)
-
-    def userId = column[Option[Long]]("user_id")
+  class Logs(tag: Tag) extends IdTable[LogEntity](tag, "logs") {
+    def userId = column[Long]("user_id")
 
     def userFk = foreignKey("LOG_USER_FK", userId, users)(_.id,
       onUpdate = ForeignKeyAction.Restrict,

@@ -1,22 +1,24 @@
 package de.thepiwo.lifelogging.restapi.utils
 
-import com.github.tminglei.slickpg.PgSprayJsonSupport
+import com.github.tminglei.slickpg.{ExPostgresProfile, PgSprayJsonSupport}
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
-import slick.jdbc.PostgresProfile
+import slick.basic.Capability
+import slick.jdbc.JdbcCapabilities
+
+trait JsonSupportedPostgresDriver extends ExPostgresProfile with PgSprayJsonSupport {
+  override val pgjson = "jsonb"
+
+  override val api = new API with SprayJsonImplicits
+
+  override protected def computeCapabilities: Set[Capability] =
+    super.computeCapabilities + JdbcCapabilities.insertOrUpdate
+}
+
+object JsonSupportedPostgresDriver extends JsonSupportedPostgresDriver
 
 class DatabaseService(jdbcUrl: String, dbUser: String, dbPassword: String) {
 
   case class JBean(name: String, count: Int)
-
-  trait JsonSupportedPostgresDriver extends PostgresProfile
-    with PgSprayJsonSupport {
-    override val pgjson = "jsonb"
-
-    override val api = new API with SprayJsonImplicits
-  }
-
-  object JsonSupportedPostgresDriver extends JsonSupportedPostgresDriver
-
 
   private val hikariConfig = new HikariConfig()
   hikariConfig.setJdbcUrl(jdbcUrl)

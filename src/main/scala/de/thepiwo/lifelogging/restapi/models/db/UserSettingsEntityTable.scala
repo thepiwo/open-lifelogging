@@ -1,19 +1,13 @@
 package de.thepiwo.lifelogging.restapi.models.db
 
 import de.thepiwo.lifelogging.restapi.models.UserSettingsEntity
-import de.thepiwo.lifelogging.restapi.utils.DatabaseService
 import slick.collection.heterogeneous.HNil
+import de.thepiwo.lifelogging.restapi.utils.JsonSupportedPostgresDriver.api._
 
 trait UserSettingsEntityTable {
 
-  protected val databaseService: DatabaseService
-
-  import databaseService.driver.api._
-
-  class UserSettings(tag: Tag) extends Table[UserSettingsEntity](tag, "user_settings") {
-    def id = column[Option[Long]]("id", O.PrimaryKey, O.AutoInc)
-
-    def userId = column[Option[Long]]("user_id")
+  class UserSettings(tag: Tag) extends IdTable[UserSettingsEntity](tag, "user_settings") {
+    def userId = column[Long]("user_id")
 
     def userFk = foreignKey("LOG_USER_FK", userId, userSettings)(_.id,
       onUpdate = ForeignKeyAction.Restrict,

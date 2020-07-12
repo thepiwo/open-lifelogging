@@ -28,7 +28,7 @@ trait BaseServiceTest extends AnyWordSpec with Matchers with ScalatestRouteTest 
   def provisionUsersList(size: Int): Seq[TestUserEntity] = {
     val savedUsers = (1 to size).map { _ =>
       val password = Random.nextString(10)
-      (UserEntity(Some(Random.nextLong()), Random.nextString(10), password.bcrypt), password)
+      (UserEntity(Random.nextLong(), Random.nextString(10), password.bcrypt), password)
     }.map { tuple => usersService.createUser(tuple._1).map { result => TestUserEntity(result, tuple._2) } }
 
     Await.result(Future.sequence(savedUsers), 10.seconds)

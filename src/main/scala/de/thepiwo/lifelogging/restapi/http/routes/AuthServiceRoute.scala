@@ -4,7 +4,7 @@ import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import de.thepiwo.lifelogging.restapi.http.SecurityDirectives
-import de.thepiwo.lifelogging.restapi.models.UserEntity
+import de.thepiwo.lifelogging.restapi.models.SignUpUser
 import de.thepiwo.lifelogging.restapi.services.AuthService
 import de.thepiwo.lifelogging.restapi.utils.{JsonProtocol, LoginPassword}
 import spray.json._
@@ -40,8 +40,8 @@ class AuthServiceRoute(val authService: AuthService)
     path("signUp") {
       pathEndOrSingleSlash {
         post {
-          entity(as[UserEntity]) { userEntity =>
-            onComplete(signUp(userEntity)) {
+          entity(as[SignUpUser]) { signUpUser =>
+            onComplete(signUp(signUpUser)) {
               case Success(token) => complete(Created -> token.toJson)
               case Failure(e) => handleFailure(e)
             }

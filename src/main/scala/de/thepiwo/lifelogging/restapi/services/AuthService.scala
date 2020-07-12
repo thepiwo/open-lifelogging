@@ -1,7 +1,7 @@
 package de.thepiwo.lifelogging.restapi.services
 
 import de.thepiwo.lifelogging.restapi.models.db.TokenEntityTable
-import de.thepiwo.lifelogging.restapi.models.{TokenEntity, UserEntity}
+import de.thepiwo.lifelogging.restapi.models.{SignUpUser, TokenEntity, UserEntity}
 import de.thepiwo.lifelogging.restapi.utils.{DatabaseService, UnauthorizedException}
 import com.github.t3hnar.bcrypt._
 
@@ -28,8 +28,8 @@ class AuthService(val databaseService: DatabaseService)
     }
   }
 
-  def signUp(newUser: UserEntity): Future[TokenEntity] = {
-    val encryptedPasswordUser = UserEntity(None, newUser.username, newUser.password.bcrypt)
+  def signUp(signUpUser: SignUpUser): Future[TokenEntity] = {
+    val encryptedPasswordUser = UserEntity(username = signUpUser.username, password = signUpUser.password.bcrypt)
     usersService.createUser(encryptedPasswordUser).flatMap(user => createToken(user))
   }
 

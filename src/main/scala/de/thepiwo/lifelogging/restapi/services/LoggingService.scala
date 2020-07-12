@@ -66,7 +66,7 @@ class LoggingService(val databaseService: DatabaseService)
       .distinct.length.result)
 
   def createLogItem(loggedUser: UserEntity, logEntityInsert: LogEntityInsert): Future[LogEntity] = {
-    val logEntity = LogEntity(None,
+    val logEntity = LogEntity(
       userId = loggedUser.id,
       key = logEntityInsert.key,
       data = logEntityInsert.data,
@@ -79,7 +79,7 @@ class LoggingService(val databaseService: DatabaseService)
   }
 
   def createLogItems(loggedUser: UserEntity, logEntitiesInsert: Seq[LogEntityInsert]): Future[Option[Int]] = {
-    val logEntities = logEntitiesInsert.map(logEntityInsert => LogEntity(None,
+    val logEntities = logEntitiesInsert.map(logEntityInsert => LogEntity(
       userId = loggedUser.id,
       key = logEntityInsert.key,
       data = logEntityInsert.data,
@@ -116,10 +116,10 @@ class LoggingService(val databaseService: DatabaseService)
   }
 
   private def getValuesForLimit(filterLogsQuery: Query[Logs, LogEntity, Seq]): Future[(Long, Long, Long)] =
-    db.run(filterLogsQuery.map(_.id).zipWithIndex.result).map { idWithIndex: Seq[(Option[Long], Long)] =>
+    db.run(filterLogsQuery.map(_.id).zipWithIndex.result).map { idWithIndex: Seq[(Long, Long)] =>
       val modSelector = idWithIndex.map(_._2) |> emptyZeroOrMax
-      val maxId = idWithIndex.map(_._1.getOrElse(0L)) |> emptyZeroOrMax
-      val minId = idWithIndex.map(_._1.getOrElse(0L)) |> emptyZeroOrMin
+      val maxId = idWithIndex.map(_._1) |> emptyZeroOrMax
+      val minId = idWithIndex.map(_._1) |> emptyZeroOrMin
 
       (maxId, minId, modSelector)
     }
@@ -151,4 +151,5 @@ class LoggingService(val databaseService: DatabaseService)
 
   def getLogKeys(loggedUser: UserEntity): Future[Seq[String]] =
     db.run(logs.filter(_.userId === loggedUser.id).map(_.key).result)
+
 }

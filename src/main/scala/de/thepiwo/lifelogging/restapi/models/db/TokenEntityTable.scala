@@ -1,19 +1,13 @@
 package de.thepiwo.lifelogging.restapi.models.db
 
 import de.thepiwo.lifelogging.restapi.models.TokenEntity
-import de.thepiwo.lifelogging.restapi.utils.DatabaseService
+import de.thepiwo.lifelogging.restapi.utils.JsonSupportedPostgresDriver.api._
 import slick.collection.heterogeneous.HNil
 
 trait TokenEntityTable extends UserEntityTable {
 
-  protected val databaseService: DatabaseService
-
-  import databaseService.driver.api._
-
-  class Tokens(tag: Tag) extends Table[TokenEntity](tag, "tokens") {
-    def id = column[Option[Long]]("id", O.PrimaryKey, O.AutoInc)
-
-    def userId = column[Option[Long]]("user_id")
+  class Tokens(tag: Tag) extends IdTable[TokenEntity](tag, "tokens") {
+    def userId = column[Long]("user_id")
 
     def token = column[String]("token")
 
