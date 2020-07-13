@@ -1,8 +1,11 @@
 package de.thepiwo.lifelogging.restapi.http.routes
 
+import java.io.File
+
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.directives.FileInfo
 import de.thepiwo.lifelogging.restapi.http.SecurityDirectives
 import de.thepiwo.lifelogging.restapi.models.UserEntity
 import de.thepiwo.lifelogging.restapi.services.{AuthService, ImportService}
@@ -17,7 +20,8 @@ class ImportServiceRoute(val authService: AuthService, val importService: Import
 
   val route: Route = pathPrefix("import") {
     authenticate { implicit loggedUser =>
-      googleRoute
+      googleRoute ~
+        samsungRoute
     }
   }
 
@@ -34,4 +38,22 @@ class ImportServiceRoute(val authService: AuthService, val importService: Import
         }
       }
     }
+
+  def samsungRoute(implicit loggedUser: UserEntity): Route = {
+    def tempDestination(fileInfo: FileInfo): File =
+      File.createTempFile(fileInfo.fileName, ".zip")
+
+    path("samsung") {
+      pathEndOrSingleSlash {
+        post {
+          storeUploadedFile("zip", tempDestination) { case (metadata, file) =>
+            onComplete(importSamsung(file)) {
+              case Success(count) => complete(OK -> count.toString)
+              case Failure(e) => handleFailure(e)
+            }
+          }
+        }
+      }
+    }
+  }
 }

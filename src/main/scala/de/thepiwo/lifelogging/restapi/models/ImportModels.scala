@@ -4,4 +4,6 @@ case class GoogleLocation(timestampMs: String, latitudeE7: Float, longitudeE7: F
 
 case class GoogleLocations(locations: Seq[GoogleLocation])
 
-case class CoordEntity(accuracy: Float, latitude: Float, longitude: Float)
+case class CoordEntity(accuracy: Option[Float], latitude: Float, longitude: Float, source: String, altitude: Option[Float])
+
+case class SamsungLocation(start_time: Long, latitude: Float, longitude: Float, altitude: Option[Float])

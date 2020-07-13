@@ -1,7 +1,9 @@
 package de.thepiwo.lifelogging.restapi.services
 
+import java.io.File
+
 import akka.stream.Materializer
-import akka.stream.scaladsl.{Framing, Sink, Source}
+import akka.stream.scaladsl.{Framing, Sink, Source => StreamSource}
 import akka.util.ByteString
 import de.thepiwo.lifelogging.restapi.models._
 import de.thepiwo.lifelogging.restapi.models.db.TokenEntityTable
@@ -9,11 +11,15 @@ import de.thepiwo.lifelogging.restapi.utils.DatabaseService
 import spray.json.{NullOptions, RootJsonFormat, _}
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.io.{Source => IoSource}
+import scala.languageFeature.existentials
+import scala.reflect.io.ZipArchive
 
 object ImportJsonProtocol extends DefaultJsonProtocol with NullOptions {
   implicit val googleLocationFormat: RootJsonFormat[GoogleLocation] = jsonFormat4(GoogleLocation)
   implicit val googleLocationsFormat: RootJsonFormat[GoogleLocations] = jsonFormat1(GoogleLocations)
-  implicit val coordEntityFormat: RootJsonFormat[CoordEntity] = jsonFormat3(CoordEntity)
+  implicit val coordEntityFormat: RootJsonFormat[CoordEntity] = jsonFormat5(CoordEntity)
+  implicit val samsungLocationFormat: RootJsonFormat[SamsungLocation] = jsonFormat4(SamsungLocation)
 }
 
 class ImportService(val databaseService: DatabaseService, val loggingService: LoggingService)
@@ -21,7 +27,7 @@ class ImportService(val databaseService: DatabaseService, val loggingService: Lo
 
   import ImportJsonProtocol._
 
-  def importGoogle(byteSource: Source[ByteString, Any])(implicit user: UserEntity): Future[Int] =
+  def importGoogle(byteSource: StreamSource[ByteString, Any])(implicit user: UserEntity): Future[Int] =
     for {
       dataString <- byteSource
         .via(Framing.delimiter(ByteString("\n"), maximumFrameLength = 256, allowTruncation = true))
@@ -31,10 +37,35 @@ class ImportService(val databaseService: DatabaseService, val loggingService: Lo
       locations = dataString.mkString.parseJson.convertTo[GoogleLocations].locations
       logEntries = locations.filter(_.accuracy < 100).map(location => LogEntityInsert("CoordEntity",
         CoordEntity(
-          accuracy = location.accuracy,
+          accuracy = Some(location.accuracy),
           latitude = location.latitudeE7 / 10000000,
-          longitude = location.longitudeE7 / 10000000).toJson, location.timestampMs.toLong))
+          longitude = location.longitudeE7 / 10000000,
+          source = "Google",
+          altitude = None).toJson, location.timestampMs.toLong))
 
       inserted <- loggingService.createLogItems(user, logEntries)
     } yield inserted.getOrElse(0)
+
+  def importSamsung(file: File)(implicit user: UserEntity): Future[Int] = {
+    import scala.jdk.CollectionConverters._
+
+    val locations: Seq[SamsungLocation] = ZipArchive.fromFile(file).allDirs.asScala
+      .foldLeft(List.empty[SamsungLocation]) { case (acc, (_, files)) =>
+        acc ::: files.filter(f => f.name.endsWith("location_data.json")).flatMap { f =>
+          val string = IoSource.fromInputStream(f.input).mkString
+          string.parseJson.convertTo[List[SamsungLocation]]
+        }.toList
+      }
+
+    val logEntries = locations.map(location => LogEntityInsert("CoordEntity",
+      CoordEntity(
+        altitude = location.altitude,
+        latitude = location.latitude,
+        longitude = location.longitude,
+        source = "Samsung",
+        accuracy = None).toJson, location.start_time))
+
+    loggingService.createLogItems(user, logEntries).map(_.getOrElse(0))
+  }
+
 }
