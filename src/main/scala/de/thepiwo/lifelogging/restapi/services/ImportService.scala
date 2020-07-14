@@ -50,11 +50,11 @@ class ImportService(val databaseService: DatabaseService, val loggingService: Lo
   def importApp(byteSource: StreamSource[ByteString, Any])(implicit user: UserEntity): Future[Int] =
     for {
       dataString <- byteSource
-        .via(Framing.delimiter(ByteString("\n"), maximumFrameLength = 256, allowTruncation = true))
+        .via(Framing.delimiter(ByteString("}{"), maximumFrameLength = 256, allowTruncation = true))
         .map(_.utf8String)
         .runWith(Sink.seq)
 
-      jsonString = "[" + dataString.mkString.replaceAll("\\}\\{", "},{") + "]"
+      jsonString = "[" + dataString.mkString("},{") + "]"
 
       locations = jsonString.parseJson.convertTo[Seq[AppLocation]]
       logEntries = locations.filter(_.data.accuracy.forall(_ < 100)).map(location => LogEntityInsert("CoordEntity",
