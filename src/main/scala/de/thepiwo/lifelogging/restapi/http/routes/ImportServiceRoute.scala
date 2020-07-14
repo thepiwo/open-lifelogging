@@ -21,6 +21,7 @@ class ImportServiceRoute(val authService: AuthService, val importService: Import
   val route: Route = pathPrefix("import") {
     authenticate { implicit loggedUser =>
       googleRoute ~
+        appRoute ~
         samsungRoute
     }
   }
@@ -31,6 +32,20 @@ class ImportServiceRoute(val authService: AuthService, val importService: Import
         post {
           fileUpload("json") { case (_, byteSource) =>
             onComplete(importGoogle(byteSource)) {
+              case Success(count) => complete(OK -> count.toString)
+              case Failure(e) => handleFailure(e)
+            }
+          }
+        }
+      }
+    }
+
+  def appRoute(implicit loggedUser: UserEntity): Route =
+    path("app") {
+      pathEndOrSingleSlash {
+        post {
+          fileUpload("json") { case (_, byteSource) =>
+            onComplete(importApp(byteSource)) {
               case Success(count) => complete(OK -> count.toString)
               case Failure(e) => handleFailure(e)
             }

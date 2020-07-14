@@ -5,8 +5,8 @@ import java.io.File
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Framing, Sink, Source => StreamSource}
 import akka.util.ByteString
-import de.thepiwo.lifelogging.restapi.models._
 import de.thepiwo.lifelogging.restapi.models.db.TokenEntityTable
+import de.thepiwo.lifelogging.restapi.models.{AppLocation, _}
 import de.thepiwo.lifelogging.restapi.utils.DatabaseService
 import spray.json.{NullOptions, RootJsonFormat, _}
 
@@ -20,6 +20,7 @@ object ImportJsonProtocol extends DefaultJsonProtocol with NullOptions {
   implicit val googleLocationsFormat: RootJsonFormat[GoogleLocations] = jsonFormat1(GoogleLocations)
   implicit val coordEntityFormat: RootJsonFormat[CoordEntity] = jsonFormat5(CoordEntity)
   implicit val samsungLocationFormat: RootJsonFormat[SamsungLocation] = jsonFormat4(SamsungLocation)
+  implicit val appLocationFormat: RootJsonFormat[AppLocation] = jsonFormat2(AppLocation)
 }
 
 class ImportService(val databaseService: DatabaseService, val loggingService: LoggingService)
@@ -40,8 +41,24 @@ class ImportService(val databaseService: DatabaseService, val loggingService: Lo
           accuracy = Some(location.accuracy),
           latitude = location.latitudeE7 / 10000000,
           longitude = location.longitudeE7 / 10000000,
-          source = "Google",
+          source = Some("Google"),
           altitude = None).toJson, location.timestampMs.toLong))
+
+      inserted <- loggingService.createLogItems(user, logEntries)
+    } yield inserted.getOrElse(0)
+
+  def importApp(byteSource: StreamSource[ByteString, Any])(implicit user: UserEntity): Future[Int] =
+    for {
+      dataString <- byteSource
+        .via(Framing.delimiter(ByteString("\n"), maximumFrameLength = 256, allowTruncation = true))
+        .map(_.utf8String)
+        .runWith(Sink.seq)
+
+      jsonString = "[" + dataString.mkString.replaceAll("\\}\\{", "},{") + "]"
+
+      locations = jsonString.parseJson.convertTo[Seq[AppLocation]]
+      logEntries = locations.filter(_.data.accuracy.forall(_ < 100)).map(location => LogEntityInsert("CoordEntity",
+        location.data.toJson, location.createdAtClient))
 
       inserted <- loggingService.createLogItems(user, logEntries)
     } yield inserted.getOrElse(0)
@@ -62,7 +79,7 @@ class ImportService(val databaseService: DatabaseService, val loggingService: Lo
         altitude = location.altitude,
         latitude = location.latitude,
         longitude = location.longitude,
-        source = "Samsung",
+        source = Some("Samsung"),
         accuracy = None).toJson, location.start_time))
 
     loggingService.createLogItems(user, logEntries).map(_.getOrElse(0))
