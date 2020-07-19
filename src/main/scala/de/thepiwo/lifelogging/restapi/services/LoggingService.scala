@@ -93,9 +93,9 @@ class LoggingService(val databaseService: DatabaseService)
       knownTimestamps <- db.run(logs.map(_.createdAtClient).result)
 
       // optimization for comparing big lists
-      nonDuplicates = timestamps.concat(knownTimestamps)
-        .groupBy(identity)
-        .collect { case (x, List(_)) => logEntitiesMap.get(x).map(_.head) }
+      groupedTimestamps: Map[Timestamp, Seq[Timestamp]] = timestamps.concat(knownTimestamps).groupBy(identity)
+      nonDuplicates = groupedTimestamps
+        .collect { case (x, Seq(_)) => logEntitiesMap.get(x).map(_.head) }
         .filter(_.nonEmpty).map(_.get).toSeq
       inserted <- db.run((logs ++= nonDuplicates).transactionally)
     } yield inserted

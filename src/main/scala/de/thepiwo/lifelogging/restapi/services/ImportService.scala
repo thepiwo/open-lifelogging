@@ -57,8 +57,8 @@ class ImportService(val databaseService: DatabaseService, val loggingService: Lo
       jsonString = "[" + dataString.mkString("},{") + "]"
 
       locations = jsonString.parseJson.convertTo[Seq[AppLocation]]
-      logEntries = locations.filter(_.data.accuracy.forall(_ < 100)).map(location => LogEntityInsert("CoordEntity",
-        location.data.toJson, location.createdAtClient))
+      logEntries = locations.filter(_.data.accuracy.forall(_ < 100)).map(location =>
+        LogEntityInsert("CoordEntity", location.data.toJson, location.createdAtClient))
 
       inserted <- loggingService.createLogItems(user, logEntries)
     } yield inserted.getOrElse(0)
