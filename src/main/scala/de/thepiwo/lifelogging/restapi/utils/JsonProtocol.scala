@@ -26,7 +26,7 @@ trait JsonProtocol extends SprayJsonSupport with AdditionalJsonProtocol with Nul
   implicit val tokenEntityFormat: RootJsonFormat[TokenEntity] = jsonFormat3(TokenEntity)
   implicit val loginPasswordFormat: RootJsonFormat[LoginPassword] = jsonFormat2(LoginPassword)
   implicit val userEntityFormat: RootJsonFormat[UserEntity] = jsonFormat3(UserEntity)
-  implicit val logEntityFormat: RootJsonFormat[LogEntity] = jsonFormat6(LogEntity)
+  implicit val logEntityFormat: RootJsonFormat[LogEntity] = jsonFormat7(LogEntity)
   implicit val logEntityFormatInsert: RootJsonFormat[LogEntityInsert] = jsonFormat3(LogEntityInsert)
   implicit val publicUserEntityFormat: RootJsonFormat[PublicUserEntity] = jsonFormat2(PublicUserEntity)
   implicit val userEntityUpdateFormat: RootJsonFormat[UserEntityUpdate] = jsonFormat2(UserEntityUpdate)

@@ -25,11 +25,13 @@ class LoggingService(val databaseService: DatabaseService)
     dateOptions match {
       case None =>
         logs
+          .filter(_.hidden === false)
           .filter(_.userId === loggedUser.id)
           .sortBy(_.createdAtClient desc)
 
       case Some(date) =>
         logs
+          .filter(_.hidden === false)
           .filter(_.userId === loggedUser.id)
           .filter(_.createdAtClient
             .between(
@@ -58,7 +60,7 @@ class LoggingService(val databaseService: DatabaseService)
   def deleteLogById(loggedUser: UserEntity, logId: Long): Future[Int] =
     db.run(logs.filter(_.userId === loggedUser.id)
       .filter(_.id === logId)
-      .delete)
+      .map(_.hidden).update(true))
 
   def getLastLogOlderTwoHours(loggedUser: UserEntity): Future[Int] =
     db.run(logs.filter(_.userId === loggedUser.id)
@@ -137,6 +139,7 @@ class LoggingService(val databaseService: DatabaseService)
   def getLatestLog(loggedUser: UserEntity, logKey: String): Future[Option[LogEntity]] = {
     val limitLogsQuery: Query[Logs, LogEntity, Seq] =
       logs
+        .filter(_.hidden === false)
         .filter(_.userId === loggedUser.id)
         .filter(_.key === logKey)
         .sortBy(_.createdAtClient desc)
@@ -151,7 +154,10 @@ class LoggingService(val databaseService: DatabaseService)
     }
 
     val limitLogsQuery: Query[Logs, LogEntity, Seq] =
-      logs.filter(_.userId === loggedUser.id).sortBy(_.createdAtClient desc)
+      logs
+        .filter(_.hidden === false)
+        .filter(_.userId === loggedUser.id)
+        .sortBy(_.createdAtClient desc)
 
     for {
       count <- getCountLogs(limitLogsQuery)
@@ -160,6 +166,6 @@ class LoggingService(val databaseService: DatabaseService)
   }
 
   def getLogKeys(loggedUser: UserEntity): Future[Seq[String]] =
-    db.run(logs.filter(_.userId === loggedUser.id).map(_.key).result)
+    db.run(logs.filter(_.hidden === false).filter(_.userId === loggedUser.id).map(_.key).result)
 
 }
