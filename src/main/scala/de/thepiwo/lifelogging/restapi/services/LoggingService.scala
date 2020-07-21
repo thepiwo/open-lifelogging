@@ -19,6 +19,14 @@ class LoggingService(val databaseService: DatabaseService)
   import databaseService._
   import databaseService.driver.api._
 
+  sealed trait LimitType
+
+  case object Unlimited extends LimitType
+
+  case object LimitModId extends LimitType
+
+  case object LimitTimeSections extends LimitType
+
   private val UNIFORM_LIMIT: Long = 20000
 
   private def getLogsQuery(loggedUser: UserEntity, dateOptions: Option[DateOptions]) =
@@ -45,7 +53,7 @@ class LoggingService(val databaseService: DatabaseService)
     val filterLogsQuery: Query[Logs, LogEntity, Seq] = getLogsQuery(loggedUser, dateOptions)
     for {
       count <- getCountLogs(filterLogsQuery)
-      logs <- getLimitedLogs(filterLogsQuery, unlimited)
+      logs <- getLimitedLogs(filterLogsQuery, if (unlimited) Unlimited else LimitModId)
     } yield LogEntityReturn(count, logs)
   }
 
@@ -53,7 +61,7 @@ class LoggingService(val databaseService: DatabaseService)
     val filterLogsQuery: Query[Logs, LogEntity, Seq] = getLogsQuery(loggedUser, dateOptions).filter(_.key === logKey)
     for {
       count <- getCountLogs(filterLogsQuery)
-      logs <- getLimitedLogs(filterLogsQuery, unlimited)
+      logs <- getLimitedLogs(filterLogsQuery, if (unlimited) Unlimited else LimitModId)
     } yield LogEntityReturn(count, logs)
   }
 
@@ -105,15 +113,22 @@ class LoggingService(val databaseService: DatabaseService)
 
   private def getCountLogs(filterLogsQuery: Query[Logs, LogEntity, Seq]): Future[Int] = db.run(filterLogsQuery.size.result)
 
-  private def getLimitedLogs(filterLogsQuery: Query[Logs, LogEntity, Seq], unlimited: Boolean): Future[Seq[LogEntity]] =
-    if (unlimited) {
-      db.run(filterLogsQuery.sortBy(_.createdAtClient desc).result)
-    } else {
-      getValuesForLimit(filterLogsQuery).flatMap { case (maxId, minId, modSelector) =>
+  private def getLimitedLogs(filterLogsQuery: Query[Logs, LogEntity, Seq], limitType: LimitType = LimitModId): Future[Seq[LogEntity]] =
+    limitType match {
+      case Unlimited => db.run(filterLogsQuery.sortBy(_.createdAtClient desc).result)
+      case LimitModId => getValuesForLimit(filterLogsQuery).flatMap { case (maxId, minId, modSelector) =>
         val limitedLogsQuery = getLimitedLogs(filterLogsQuery, maxId, minId, modSelector, UNIFORM_LIMIT - 2)
         db.run(limitedLogsQuery.sortBy(_.createdAtClient desc).result)
       }
+      case LimitTimeSections => db.run(getTimeLimitedSections(filterLogsQuery).result)
     }
+
+  private def getTimeLimitedSections(filterLogsQuery: Query[Logs, LogEntity, Seq]) = {
+    val filterLogsQueryIdsWithTimestamp = filterLogsQuery
+    val idSet = filterLogsQueryIdsWithTimestamp.groupBy(_.createdAtClient.trunc("day")).map { case (_, group) => group.map(_.id).min }
+
+    logs.filter(_.id in idSet).sortBy(_.createdAtClient desc)
+  }
 
   private def getLimitedLogs(filterLogsQuery: Query[Logs, LogEntity, Seq], maxId: Long, minId: Long, modSelector: Long, limit: Long): Query[Logs, LogEntity, Seq] = {
     val filterLogsQueryWithIndex = filterLogsQuery.map(_.id).zipWithIndex

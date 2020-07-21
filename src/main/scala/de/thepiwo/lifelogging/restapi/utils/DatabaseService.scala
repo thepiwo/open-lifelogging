@@ -1,14 +1,14 @@
 package de.thepiwo.lifelogging.restapi.utils
 
-import com.github.tminglei.slickpg.{ExPostgresProfile, PgSprayJsonSupport}
+import com.github.tminglei.slickpg.{ExPostgresProfile, PgDateSupport, PgSprayJsonSupport}
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import slick.basic.Capability
 import slick.jdbc.JdbcCapabilities
 
-trait JsonSupportedPostgresDriver extends ExPostgresProfile with PgSprayJsonSupport {
+trait JsonSupportedPostgresDriver extends ExPostgresProfile with PgSprayJsonSupport with PgDateSupport {
   override val pgjson = "jsonb"
 
-  override val api = new API with SprayJsonImplicits
+  override val api = new API with SprayJsonImplicits with DateTimeImplicits
 
   override protected def computeCapabilities: Set[Capability] =
     super.computeCapabilities + JdbcCapabilities.insertOrUpdate
