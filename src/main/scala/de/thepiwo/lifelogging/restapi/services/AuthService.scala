@@ -17,19 +17,20 @@ class AuthService(val databaseService: DatabaseService)
   def signIn(login: String, password: String): Future[TokenEntity] = {
     db.run(users.filter(u => u.username === login).result.headOption).flatMap {
       case Some(user) =>
-        password.isBcrypted(user.password) match {
-          case true => db.run(tokens.filter(_.userId === user.id).result.headOption).flatMap {
+        if (password.isBcryptedBounded(user.password)) {
+          db.run(tokens.filter(_.userId === user.id).result.headOption).flatMap {
             case Some(token) => Future.successful(token)
             case None => createToken(user)
           }
-          case false => throw UnauthorizedException("wrong password")
+        } else {
+          throw UnauthorizedException("wrong password")
         }
       case None => throw UnauthorizedException("user not found")
     }
   }
 
   def signUp(signUpUser: SignUpUser): Future[TokenEntity] = {
-    val encryptedPasswordUser = UserEntity(username = signUpUser.username, password = signUpUser.password.bcrypt)
+    val encryptedPasswordUser = UserEntity(username = signUpUser.username, password = signUpUser.password.boundedBcrypt)
     usersService.createUser(encryptedPasswordUser).flatMap(user => createToken(user))
   }
 

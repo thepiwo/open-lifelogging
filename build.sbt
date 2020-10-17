@@ -7,17 +7,17 @@ scalacOptions ++= Seq("-Xlint:-missing-interpolator", "-Xfatal-warnings", "-depr
 resolvers += Resolver.sonatypeRepo("releases")
 
 libraryDependencies ++= {
-  val akkaVersion = "2.6.7"
-  val akkaHttpVersion = "10.1.12"
-  val flywayVersion = "6.5.0"
+  val akkaVersion = "2.6.10"
+  val akkaHttpVersion = "10.2.1"
+  val flywayVersion = "7.0.3"
   val hikariCpVersion = "3.4.5"
   val logBackVersion = "1.2.3"
-  val postgresVersion = "42.2.14"
-  val scalaBcryptVersion = "4.1"
+  val postgresVersion = "42.2.18"
+  val scalaBcryptVersion = "4.3.0"
   val scalaLoggingVersion = "3.9.2"
-  val scalaTestVersion = "3.2.0"
-  val slickVersion = "3.3.2"
-  val slickPGVersion = "0.19.0"
+  val scalaTestVersion = "3.2.2"
+  val slickVersion = "3.3.3"
+  val slickPGVersion = "0.19.3"
   val sprayVersion = "1.3.5"
 
   Seq(

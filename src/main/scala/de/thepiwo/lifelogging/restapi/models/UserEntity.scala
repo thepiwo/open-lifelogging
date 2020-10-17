@@ -25,7 +25,7 @@ case class UserEntityUpdate(username: Option[String] = None,
                             password: Option[String] = None) {
 
   def merge(user: UserEntity): UserEntity = {
-    val encryptedPassword = password.flatMap { password => Some(password.bcrypt) }
+    val encryptedPassword = password.flatMap { password => Some(password.boundedBcrypt) }
     UserEntity(user.id, username.getOrElse(user.username), encryptedPassword.getOrElse(user.password))
   }
 }
