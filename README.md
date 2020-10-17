@@ -24,8 +24,6 @@ Backend server for the open-lifelogging android app and webclient
 ## Known Issues
 
  - Tests not running
- - LastFm ignore already fetched
- - LastFm pagination missing
 
 ## Copyright
 
