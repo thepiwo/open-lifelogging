@@ -7,13 +7,13 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.directives.ParameterDirectives.parameters
 import de.thepiwo.lifelogging.restapi.http.SecurityDirectives
-import de.thepiwo.lifelogging.restapi.models.{LogEntityInsert, UserEntity}
+import de.thepiwo.lifelogging.restapi.models._
 import de.thepiwo.lifelogging.restapi.services.{AuthService, LoggingService}
 import de.thepiwo.lifelogging.restapi.utils.Helper.localDate
 import de.thepiwo.lifelogging.restapi.utils.JsonProtocol
 import spray.json._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
 case class DateOptions(fromDate: LocalDate, toDate: Option[LocalDate])
@@ -34,32 +34,32 @@ class LoggingServiceRoute(val authService: AuthService, loggingService: LoggingS
   }
 
   def byDateRoutes(implicit loggedUser: UserEntity): Route =
-    parameters("date".?, "toDate".?, "unlimited".?) { case (fromDateString, toDateString, unlimitedString) =>
+    parameters("date".?, "toDate".?, "limitType".?) { case (fromDateString, toDateString, limitTypeString) =>
       val fromDateOption: Option[LocalDate] = fromDateString.flatMap(localDate)
       val toDateOption: Option[LocalDate] = toDateString.flatMap(localDate)
 
-      implicit val unlimited: Boolean = unlimitedString.contains("true")
+      implicit val fetchType: LimitType = LimitType.fromString(limitTypeString, LimitModId)
       implicit val dateOptions: Option[DateOptions] = fromDateOption.map(fromDate => DateOptions(fromDate, toDateOption))
 
       allLogsRoute ~
         logsByKeyRoute
     }
 
-  def allLogsRoute(implicit loggedUser: UserEntity, dateOptions: Option[DateOptions], unlimited: Boolean): Route =
+  def allLogsRoute(implicit loggedUser: UserEntity, dateOptions: Option[DateOptions], limitType: LimitType): Route =
     pathEndOrSingleSlash {
       get {
-        onComplete(getLogs(loggedUser, dateOptions, unlimited)) {
+        onComplete(getLogs(loggedUser, dateOptions, limitType)) {
           case Success(logs) => complete(OK -> logs.toJson)
           case Failure(e) => handleFailure(e)
         }
       }
     }
 
-  def logsByKeyRoute(implicit loggedUser: UserEntity, dateOptions: Option[DateOptions], unlimited: Boolean): Route =
+  def logsByKeyRoute(implicit loggedUser: UserEntity, dateOptions: Option[DateOptions], limitType: LimitType): Route =
     path("key" / Remaining) { logKey =>
       pathEndOrSingleSlash {
         get {
-          onComplete(getLogs(loggedUser, logKey, dateOptions, unlimited)) {
+          onComplete(getLogs(loggedUser, logKey, dateOptions, limitType)) {
             case Success(logs) => complete(OK -> logs.toJson)
             case Failure(e) => handleFailure(e)
           }
