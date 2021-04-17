@@ -1,24 +1,19 @@
-import sbt.Keys._
-import sbt.Resolver
-
-scalaVersion := "2.13.3"
-scalacOptions ++= Seq("-Xlint:-missing-interpolator", "-Xfatal-warnings", "-deprecation", "-feature", "-language:implicitConversions", "-language:postfixOps")
+scalaVersion := "2.13.5"
+scalacOptions ++= Seq("-Xfatal-warnings", "-deprecation", "-feature", "-language:postfixOps")
 
 resolvers += Resolver.sonatypeRepo("releases")
 
 libraryDependencies ++= {
-  val akkaVersion = "2.6.10"
-  val akkaHttpVersion = "10.2.1"
-  val flywayVersion = "7.0.3"
-  val hikariCpVersion = "3.4.5"
-  val logBackVersion = "1.2.3"
-  val postgresVersion = "42.2.18"
+  val akkaVersion = "2.6.14"
+  val akkaHttpVersion = "10.2.4"
+  val flywayVersion = "7.8.1"
+  val hikariCpVersion = "4.0.3"
+  val postgresVersion = "42.2.19"
   val scalaBcryptVersion = "4.3.0"
-  val scalaLoggingVersion = "3.9.2"
-  val scalaTestVersion = "3.2.2"
+  val scalaTestVersion = "3.2.7"
   val slickVersion = "3.3.3"
-  val slickPGVersion = "0.19.3"
-  val sprayVersion = "1.3.5"
+  val slickPGVersion = "0.19.5"
+  val sprayVersion = "1.3.6"
 
   Seq(
     "com.typesafe.akka" %% "akka-actor" % akkaVersion,
@@ -35,9 +30,6 @@ libraryDependencies ++= {
 
     "com.zaxxer" % "HikariCP" % hikariCpVersion,
 
-    "ch.qos.logback" % "logback-classic" % logBackVersion,
-    "com.typesafe.scala-logging" %% "scala-logging" % scalaLoggingVersion,
-
     "io.spray" %% "spray-json" % sprayVersion,
 
     "com.github.tminglei" %% "slick-pg" % slickPGVersion,
@@ -46,10 +38,18 @@ libraryDependencies ++= {
     "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
     "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "test",
     "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % "test"
-  )
+  ).map(_.exclude("org.slf4j", "*"))
 }
 
-Revolver.settings
+libraryDependencies ++= {
+  val logBackVersion = "1.2.3"
+  val scalaLoggingVersion = "3.9.3"
+
+  Seq(
+    "ch.qos.logback" % "logback-classic" % logBackVersion,
+    "com.typesafe.scala-logging" %% "scala-logging" % scalaLoggingVersion
+  )
+}
 
 lazy val root = (project in file(".")).
   enablePlugins(AssemblyPlugin).
@@ -57,7 +57,7 @@ lazy val root = (project in file(".")).
     name := "open-lifelogging",
     organization := "de.thepiwo",
     version := "0.0.3",
-    scalaVersion := "2.13.3"
+    scalaVersion := scalaVersion.value
   )
 
-test in assembly := {}
+Test / test := {}

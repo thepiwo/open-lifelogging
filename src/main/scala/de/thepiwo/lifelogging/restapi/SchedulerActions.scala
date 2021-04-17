@@ -3,11 +3,11 @@ package de.thepiwo.lifelogging.restapi
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.util.Timeout
 import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.scalalogging.LazyLogging
 import de.thepiwo.lifelogging.restapi.SchedulerMessages.{UpdateLastFm, UpdateLastFmFor}
 import de.thepiwo.lifelogging.restapi.connector.lastfm.LastFm
 import de.thepiwo.lifelogging.restapi.models.{LogEntityInsert, UserEntity}
 import de.thepiwo.lifelogging.restapi.services.{LoggingService, UsersService}
-import org.slf4j.{Logger, LoggerFactory}
 import spray.json._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -36,14 +36,13 @@ class SchedulerActions(val usersService: UsersService, loggingService: LoggingSe
   system.scheduler.scheduleAtFixedRate(0 milliseconds, LASTFM_RATE minute, actor, UpdateLastFm)
 }
 
-class SchedulerActor(val usersService: UsersService, loggingService: LoggingService)(implicit timeout: Timeout) extends Actor {
+class SchedulerActor(val usersService: UsersService, loggingService: LoggingService)(implicit timeout: Timeout)
+  extends Actor with LazyLogging {
 
   import de.thepiwo.lifelogging.restapi.connector.lastfm.LastFmJsonProtocol._
   import usersService._
 
-  val log: Logger = LoggerFactory.getLogger("SchedulerActor")
-
-  log.debug("Started SchedulerActor")
+  logger.debug("Started SchedulerActor")
 
   def receive: PartialFunction[Any, Unit] = {
     case UpdateLastFm =>
@@ -56,11 +55,11 @@ class SchedulerActor(val usersService: UsersService, loggingService: LoggingServ
       }
 
     case UpdateLastFmFor(username, user) =>
-      log.debug(s"Received UpdateLastFmFor $username")
+      logger.debug(s"Received UpdateLastFmFor $username")
       for {
         latestLogEntity <- loggingService.getLatestLog(user, "LastFMSong")
         tracks <- LastFm.RecentTracks(username, latestLogEntity.map(_.createdAtClient))
-        _ = log.debug(s"UpdateLastFmFor ${tracks.length} tracks")
+        _ = logger.debug(s"UpdateLastFmFor ${tracks.length} tracks")
         logEntries = tracks
           .filter(_.date.isDefined)
           .map(track => LogEntityInsert("LastFMSong", track.toJson, track.date.get.uts.toLong * 1000))

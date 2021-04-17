@@ -2,20 +2,20 @@ package de.thepiwo.lifelogging.restapi
 
 
 import akka.actor.ActorSystem
-import akka.event.{Logging, LoggingAdapter}
 import akka.http.scaladsl.Http
 import akka.stream.{Materializer, SystemMaterializer}
+import com.typesafe.scalalogging.LazyLogging
 import de.thepiwo.lifelogging.restapi.http.HttpService
 import de.thepiwo.lifelogging.restapi.services.{AuthService, ImportService, LoggingService, UsersService}
 import de.thepiwo.lifelogging.restapi.utils.{Config, DatabaseService, FlywayService}
 
 import scala.concurrent.ExecutionContext
 
-object Main extends App with Config {
+object Main
+  extends App with Config with LazyLogging {
   implicit val actorSystem: ActorSystem = ActorSystem("MainSystem")
   implicit val executor: ExecutionContext = actorSystem.dispatcher
   implicit val materializer: Materializer = SystemMaterializer(actorSystem.classicSystem).materializer
-  implicit val log: LoggingAdapter = Logging(actorSystem, getClass)
 
   val flywayService = new FlywayService(jdbcUrl, dbUser, dbPassword)
   flywayService.migrateDatabaseSchema
@@ -32,7 +32,7 @@ object Main extends App with Config {
   val schedulerActions = new SchedulerActions(usersService, loggingService)
 
   Http().newServerAt(httpHost, httpPort).bind(httpService.routes)
-  log.info(s"Listening on $httpHost:$httpPort")
+  logger.info(s"Listening on $httpHost:$httpPort")
 }
 
 

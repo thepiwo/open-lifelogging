@@ -1,17 +1,16 @@
 package de.thepiwo.lifelogging.restapi.connector.lastfm
 
-import java.sql.Timestamp
-import java.time.ZoneOffset
-
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.{Unmarshal, Unmarshaller}
 import com.typesafe.config.{Config, ConfigFactory}
-import org.slf4j.{Logger, LoggerFactory}
+import com.typesafe.scalalogging.LazyLogging
 import spray.json._
 
+import java.sql.Timestamp
+import java.time.ZoneOffset
 import scala.collection.immutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -26,7 +25,7 @@ object LastFmJsonProtocol extends DefaultJsonProtocol with NullOptions {
   implicit val lastFmRecentTrackBaseFormat: RootJsonFormat[LastFmRecentTrackBase] = jsonFormat1(LastFmRecentTrackBase)
 }
 
-object LastFm {
+object LastFm extends LazyLogging {
 
   private val config: Config = ConfigFactory.load()
   private val API_KEY: String = config.getString("connector.lastfm.apikey")
@@ -34,7 +33,6 @@ object LastFm {
   private val PARALLEL_PAGES: Int = config.getInt("connector.lastfm.parallelpages")
   private val URL: String = config.getString("connector.lastfm.url")
 
-  val log: Logger = LoggerFactory.getLogger("LastFm")
   private implicit val system: ActorSystem = ActorSystem()
 
   import LastFmJsonProtocol._
@@ -64,7 +62,7 @@ object LastFm {
   }
 
   def RecentTracks(username: String, fromDate: Option[Timestamp], page: Int): Future[LastFmRecentTrackBase] = {
-    log.debug(s"RecentTracks $username $fromDate $page")
+    logger.debug(s"RecentTracks $username $fromDate $page")
 
     val baseQuery = Map("page" -> page.toString, "user" -> username, "api_key" -> API_KEY, "format" -> "json", "method" -> "user.getrecenttracks", "limit" -> LIMIT.toString)
     val query = fromDate match {

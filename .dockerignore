@@ -15,4 +15,5 @@ project/plugins/project/
 
 # Scala-IDE specific
 .idea/
+.bsp/
 rest.iml

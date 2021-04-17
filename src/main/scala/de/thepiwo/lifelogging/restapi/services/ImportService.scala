@@ -1,7 +1,5 @@
 package de.thepiwo.lifelogging.restapi.services
 
-import java.io.File
-
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Framing, Sink, Source => StreamSource}
 import akka.util.ByteString
@@ -10,6 +8,7 @@ import de.thepiwo.lifelogging.restapi.models.{AppLocation, _}
 import de.thepiwo.lifelogging.restapi.utils.DatabaseService
 import spray.json.{NullOptions, RootJsonFormat, _}
 
+import java.io.File
 import scala.concurrent.{ExecutionContext, Future}
 import scala.io.{Source => IoSource}
 import scala.languageFeature.existentials
