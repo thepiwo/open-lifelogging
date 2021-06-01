@@ -1,11 +1,21 @@
-const fs = require('fs');
+const fs = require('fs')
+const JSONStream = require('JSONStream');
+const es = require('event-stream');
 
-const data = JSON.parse(fs.readFileSync('./Location History.json', 'utf8')).locations;
+const stream = fs.createReadStream('Location History.json', {encoding: 'utf8'})
 
-let insert_lines = data.filter(l => {
+stream
+    .pipe(JSONStream.parse('locations.*'))
+    .pipe(es.mapSync(function (data) {
+        delete data.locationMetadata;
+        delete data.activity;
+        delete data.wifiScan;
+        delete data.platform;
+        return data;
+    }))
+    .pipe(es.filterSync(function (data) {
+        return data.timestampMs > 1622575510551 && data.latitudeE7 && data.longitudeE7;
+    }))
+    .pipe(JSONStream.stringify(open = '{"locations": [\n', sep = ',\n', close = '\n]}\n'))
+    .pipe(fs.createWriteStream('google.json'));
 
-  // timestamp of last import
-  return l.timestampMs > 1595174127466;
-});
-
-fs.writeFileSync('google.json', JSON.stringify({locations: insert_lines}, null, 2), 'utf8');
