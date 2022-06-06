@@ -63,7 +63,7 @@ class SchedulerActor(val usersService: UsersService, loggingService: LoggingServ
         logEntries = tracks
           .filter(_.date.isDefined)
           .map(track => LogEntityInsert("LastFMSong", track.toJson, track.date.get.uts.toLong * 1000))
-        inserted <- loggingService.createLogItems(user, logEntries)
+        inserted <- loggingService.insertLogItems(user, logEntries)
       } yield inserted
   }
 }

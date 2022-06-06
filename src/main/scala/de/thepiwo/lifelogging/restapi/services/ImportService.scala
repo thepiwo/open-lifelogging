@@ -43,8 +43,8 @@ class ImportService(val databaseService: DatabaseService, val loggingService: Lo
           source = Some("Google"),
           altitude = None).toJson, location.timestampMs.toLong))
 
-      inserted <- loggingService.createLogItems(user, logEntries)
-    } yield inserted.getOrElse(0)
+      inserted <- loggingService.insertLogItems(user, logEntries)
+    } yield inserted
 
   def importApp(byteSource: StreamSource[ByteString, Any])(implicit user: UserEntity): Future[Int] =
     for {
@@ -59,8 +59,8 @@ class ImportService(val databaseService: DatabaseService, val loggingService: Lo
       logEntries = locations.filter(_.data.accuracy.forall(_ < 100)).map(location =>
         LogEntityInsert("CoordEntity", location.data.toJson, location.createdAtClient))
 
-      inserted <- loggingService.createLogItems(user, logEntries)
-    } yield inserted.getOrElse(0)
+      inserted <- loggingService.insertLogItems(user, logEntries)
+    } yield inserted
 
   def importSamsung(file: File)(implicit user: UserEntity): Future[Int] = {
     import scala.jdk.CollectionConverters._
@@ -81,7 +81,7 @@ class ImportService(val databaseService: DatabaseService, val loggingService: Lo
         source = Some("Samsung"),
         accuracy = None).toJson, location.start_time))
 
-    loggingService.createLogItems(user, logEntries).map(_.getOrElse(0))
+    loggingService.insertLogItems(user, logEntries)
   }
 
 }

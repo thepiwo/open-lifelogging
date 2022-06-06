@@ -1,16 +1,16 @@
 package de.thepiwo.lifelogging.restapi.services
 
-import java.lang.Math.{ceil, max}
-import java.sql.Timestamp
-import java.time.LocalDateTime
-
 import de.thepiwo.lifelogging.restapi.http.routes.DateOptions
-import de.thepiwo.lifelogging.restapi.models._
 import de.thepiwo.lifelogging.restapi.models.db.LogEntityTable
+import de.thepiwo.lifelogging.restapi.models._
 import de.thepiwo.lifelogging.restapi.utils.Helper._
 import de.thepiwo.lifelogging.restapi.utils.{DatabaseService, LogEntityReturn}
 
+import java.lang.Math.{ceil, max}
+import java.sql.Timestamp
+import java.time.LocalDateTime
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 class LoggingService(val databaseService: DatabaseService)
                     (implicit executionContext: ExecutionContext)
@@ -79,7 +79,7 @@ class LoggingService(val databaseService: DatabaseService)
     db.run(logs returning logs += logEntity)
   }
 
-  def createLogItems(loggedUser: UserEntity, logEntitiesInsert: Seq[LogEntityInsert]): Future[Option[Int]] = {
+  def insertLogItems(loggedUser: UserEntity, logEntitiesInsert: Seq[LogEntityInsert]): Future[Int] = {
     val logEntities = logEntitiesInsert.map(logEntityInsert => LogEntity(
       userId = loggedUser.id,
       key = logEntityInsert.key,
@@ -88,19 +88,12 @@ class LoggingService(val databaseService: DatabaseService)
       createdAt = now()
     ))
 
-    val logEntitiesMap = logEntities.groupBy(_.createdAtClient)
-    val timestamps = logEntities.map(_.createdAtClient)
-
-    for {
-      knownTimestamps <- db.run(logs.map(_.createdAtClient).result)
-
-      // optimization for comparing big lists
-      groupedTimestamps: Map[Timestamp, Seq[Timestamp]] = timestamps.concat(knownTimestamps).groupBy(identity)
-      nonDuplicates = groupedTimestamps
-        .collect { case (x, Seq(_)) => logEntitiesMap.get(x).map(_.head) }
-        .filter(_.nonEmpty).map(_.get).toSeq
-      inserted <- db.run((logs ++= nonDuplicates).transactionally)
-    } yield inserted
+    logEntities.foldLeft(Future(0))((a, b) => a.flatMap(acc => db.run((logs += b).asTry).map {
+      case Success(value) => value + acc
+      case Failure(e) =>
+        println(e.getMessage)
+        acc
+    }))
   }
 
   private def getCountLogs(filterLogsQuery: Query[Logs, LogEntity, Seq]): Future[Int] = db.run(filterLogsQuery.size.result)
