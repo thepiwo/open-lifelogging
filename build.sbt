@@ -1,18 +1,18 @@
-scalaVersion := "2.13.5"
+scalaVersion := "2.13.8"
 scalacOptions ++= Seq("-Xfatal-warnings", "-deprecation", "-feature", "-language:postfixOps")
 
 resolvers += Resolver.sonatypeRepo("releases")
 
 libraryDependencies ++= {
-  val akkaVersion = "2.6.14"
-  val akkaHttpVersion = "10.2.4"
-  val flywayVersion = "7.8.1"
-  val hikariCpVersion = "4.0.3"
-  val postgresVersion = "42.2.19"
+  val akkaVersion = "2.6.19"
+  val akkaHttpVersion = "10.2.9"
+  val flywayVersion = "8.5.12"
+  val hikariCpVersion = "5.0.1"
+  val postgresVersion = "42.3.6"
   val scalaBcryptVersion = "4.3.0"
-  val scalaTestVersion = "3.2.7"
+  val scalaTestVersion = "3.2.12"
   val slickVersion = "3.3.3"
-  val slickPGVersion = "0.19.5"
+  val slickPGVersion = "0.20.3"
   val sprayVersion = "1.3.6"
 
   Seq(
@@ -42,8 +42,8 @@ libraryDependencies ++= {
 }
 
 libraryDependencies ++= {
-  val logBackVersion = "1.2.3"
-  val scalaLoggingVersion = "3.9.3"
+  val logBackVersion = "1.2.11"
+  val scalaLoggingVersion = "3.9.5"
 
   Seq(
     "ch.qos.logback" % "logback-classic" % logBackVersion,
