@@ -90,9 +90,7 @@ class LoggingService(val databaseService: DatabaseService)
 
     logEntities.foldLeft(Future(0))((a, b) => a.flatMap(acc => db.run((logs += b).asTry).map {
       case Success(value) => value + acc
-      case Failure(e) =>
-        println(e.getMessage)
-        acc
+      case Failure(e) => acc
     }))
   }
 
