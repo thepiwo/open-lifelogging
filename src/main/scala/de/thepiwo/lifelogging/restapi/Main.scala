@@ -4,15 +4,18 @@ package de.thepiwo.lifelogging.restapi
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.stream.{Materializer, SystemMaterializer}
+import akka.util.Timeout
 import com.typesafe.scalalogging.LazyLogging
 import de.thepiwo.lifelogging.restapi.http.HttpService
 import de.thepiwo.lifelogging.restapi.services.{AuthService, ImportService, LoggingService, UsersService}
 import de.thepiwo.lifelogging.restapi.utils.{Config, DatabaseService, FlywayService}
 
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.DurationInt
 
 object Main
   extends App with Config with LazyLogging {
+  implicit val timeout: Timeout = Timeout(10.minutes)
   implicit val actorSystem: ActorSystem = ActorSystem("MainSystem")
   implicit val executor: ExecutionContext = actorSystem.dispatcher
   implicit val materializer: Materializer = SystemMaterializer(actorSystem.classicSystem).materializer

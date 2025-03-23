@@ -1,8 +1,14 @@
 package de.thepiwo.lifelogging.restapi.models
 
-case class GoogleLocation(timestampMs: String, latitudeE7: Float, longitudeE7: Float, accuracy: Float)
+case class GoogleLocations(semanticSegments: Seq[GoogleSemanticSegment], rawSignals: Seq[GoogleRawSignal])
 
-case class GoogleLocations(locations: Seq[GoogleLocation])
+case class GoogleSemanticSegment(timelinePath: Option[Seq[GoogleTimelinePoint]])
+
+case class GoogleRawSignal(position: Option[GoogleSignalPosition])
+
+case class GoogleTimelinePoint(time: String, point: String)
+
+case class GoogleSignalPosition(timestamp: String, LatLng: String, accuracyMeters: Float)
 
 case class CoordEntity(accuracy: Option[Float], latitude: Float, longitude: Float, source: Option[String], altitude: Option[Float])
 
